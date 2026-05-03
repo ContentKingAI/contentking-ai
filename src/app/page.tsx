@@ -121,19 +121,6 @@ const guarantees: Array<{
   { icon: ShieldCheck, text: "Your Data is 100% Secure" }
 ];
 
-function SectionLabel({ number, label, light = false }: { number: number; label: string; light?: boolean }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[#8d55ff] to-[#4d6dff] text-base font-black text-white shadow-lg shadow-[#704dff]/30">
-        {number}
-      </span>
-      <span className={`text-xs font-black uppercase tracking-normal ${light ? "text-white" : "text-[#6f42f5]"}`}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 function PurpleButton({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
@@ -247,7 +234,6 @@ export default function LandingPage() {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_10%,rgba(34,88,255,0.55),transparent_29rem),radial-gradient(circle_at_61%_8%,rgba(156,40,255,0.35),transparent_23rem),linear-gradient(135deg,#050b17_0%,#07111f_58%,#031027_100%)]" />
         <div className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:52px_52px]" />
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-          <SectionLabel number={1} label="Hero Section" light />
           <div className="grid gap-10 py-12 lg:grid-cols-[0.72fr_1fr] lg:items-center lg:py-16">
             <div>
               <div className="mb-10 flex items-center justify-center gap-2 text-lg font-black sm:justify-start">
@@ -290,7 +276,6 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-[#f8faff] px-4 py-5 sm:px-6 lg:px-8">
         <div className="absolute right-14 top-24 h-28 w-28 opacity-40 [background-image:radial-gradient(#6d3cff_1px,transparent_1px)] [background-size:14px_14px]" />
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={2} label="Problem Section" />
           <div className="py-10 text-center">
             <h2 className="text-3xl font-black leading-tight text-[#07111f] sm:text-4xl">
               Posting every day <br className="hidden sm:block" />
@@ -313,7 +298,6 @@ export default function LandingPage() {
 
       <section className="bg-[#050b17] px-4 py-5 text-white sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={3} label="Solution / Features" light />
           <div className="py-9">
             <h2 className="text-center text-3xl font-black">
               ContentKing AI does the <span className="text-[#a855ff]">hard part</span> for you.
@@ -335,7 +319,6 @@ export default function LandingPage() {
 
       <section className="bg-[#f8faff] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={4} label="Before / After Comparison" />
           <div className="grid gap-6 py-10 md:grid-cols-[1fr_auto_1fr] md:items-center">
             <article className="mx-auto w-full max-w-sm rounded-lg border border-[#eadbe4] bg-white p-6 shadow-lg shadow-[#141b34]/5">
               <p className="mx-auto mb-5 w-fit rounded-full bg-[#ffeaf1] px-4 py-2 text-xs font-black uppercase text-[#d72d75]">
@@ -376,7 +359,6 @@ export default function LandingPage() {
 
       <section className="bg-white px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={5} label="Demo Output Preview" />
           <div className="py-10">
             <h2 className="text-center text-3xl font-black text-[#07111f]">
               See what it <span className="text-[#6d3cff]">creates.</span>
@@ -428,7 +410,6 @@ export default function LandingPage() {
 
       <section className="bg-[#f8faff] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={6} label="Who It's For" />
           <div className="py-10">
             <h2 className="text-center text-3xl font-black text-[#07111f]">
               Built for busy <span className="text-[#6d3cff]">business owners.</span>
@@ -448,7 +429,6 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-[#050b17] px-4 py-5 text-white sm:px-6 lg:px-8">
         <div className="absolute bottom-0 right-0 h-56 w-56 translate-x-20 translate-y-16 rotate-12 rounded-lg bg-[#17213b] opacity-45" />
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={7} label="Pricing Section" light />
           <div className="grid gap-5 py-10 lg:grid-cols-[0.55fr_0.55fr_1fr]">
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
               <p className="text-sm font-bold text-white/80">Monthly</p>
@@ -489,7 +469,6 @@ export default function LandingPage() {
 
       <section className="bg-white px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <SectionLabel number={8} label="Trust / Guarantee Section" />
           <div className="grid gap-8 py-10 md:grid-cols-[1fr_1.1fr] md:items-center">
             <div className="grid gap-6 sm:grid-cols-[130px_1fr] sm:items-center">
               <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[2rem] bg-gradient-to-br from-[#7c3cff] to-[#4f2bbd] text-white shadow-2xl shadow-[#6d3cff]/35">
@@ -519,7 +498,6 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-[#050b17] px-4 py-5 text-white sm:px-6 lg:px-8">
         <div className="absolute inset-y-0 right-0 w-2/3 bg-[radial-gradient(circle_at_74%_30%,rgba(126,40,255,0.7),transparent_27rem)]" />
         <div className="relative mx-auto max-w-7xl">
-          <SectionLabel number={9} label="Final CTA Section" light />
           <div className="grid gap-8 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div className="flex gap-6">
               <div className="hidden h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-[#6d3cff]/25 text-[#b58cff] sm:flex">
