@@ -8,7 +8,7 @@ export function Footer() {
         <div className="flex gap-4 font-semibold text-ink/70">
           <Link href="/pricing">Pricing</Link>
           <Link href="/demo">Demo</Link>
-          <Link href="/checkout">Checkout</Link>
+          <Link href="/signup">Signup</Link>
           <Link href="/dashboard">Dashboard</Link>
         </div>
       </div>

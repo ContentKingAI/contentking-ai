@@ -61,7 +61,7 @@ export function Header() {
                 <Sparkles className={cn("h-4 w-4", isSubscribed ? "text-mint" : "text-honey")} />
                 {isSubscribed ? `${activePlanLabel} active` : "Plan required"}
               </span>
-              {!isSubscribed ? <ButtonLink href="/checkout">Choose plan</ButtonLink> : null}
+              {!isSubscribed ? <ButtonLink href="/pricing">Choose plan</ButtonLink> : null}
               <Button variant="ghost" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -72,7 +72,7 @@ export function Header() {
               <ButtonLink href="/demo" variant="secondary">
                 Try Private Demo
               </ButtonLink>
-              <ButtonLink href="/checkout">Start Creating</ButtonLink>
+              <ButtonLink href="/pricing">Start Creating</ButtonLink>
             </>
           )}
         </div>
@@ -102,7 +102,7 @@ export function Header() {
             ))}
             {user ? (
               <>
-                {!isSubscribed ? <ButtonLink href="/checkout">Choose plan</ButtonLink> : null}
+                {!isSubscribed ? <ButtonLink href="/pricing">Choose plan</ButtonLink> : null}
                 <Button className="justify-start" onClick={handleSignOut} variant="ghost">
                   <LogOut className="h-4 w-4" />
                   Sign out
@@ -113,7 +113,7 @@ export function Header() {
                 <ButtonLink href="/demo" variant="secondary">
                   Demo
                 </ButtonLink>
-                <ButtonLink href="/checkout">Start</ButtonLink>
+                <ButtonLink href="/pricing">Start</ButtonLink>
               </div>
             )}
           </div>

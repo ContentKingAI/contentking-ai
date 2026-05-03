@@ -101,7 +101,7 @@ const audiences: IconCard[] = [
 ];
 
 const pricingFeatures = [
-  "300 monthly AI content packs",
+  "500 monthly AI content packs",
   "5,000 yearly AI content packs",
   "Captions",
   "Reels hooks",
@@ -250,7 +250,7 @@ export default function LandingPage() {
                 ContentKing AI helps small businesses generate captions, reels hooks, hashtags, and weekly content calendars instantly.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <PurpleButton href="/checkout">
+                <PurpleButton href="/pricing">
                   Start Creating
                   <ArrowRight className="h-4 w-4" />
                 </PurpleButton>
@@ -433,9 +433,9 @@ export default function LandingPage() {
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
               <p className="text-sm font-bold text-white/80">Monthly</p>
               <div className="mt-4 text-5xl font-black">$12<span className="text-2xl">/month</span></div>
-              <p className="mt-2 text-sm font-black text-white">300 AI content packs/month</p>
+              <p className="mt-2 text-sm font-black text-white">500 AI content packs/month</p>
               <p className="mt-2 text-sm text-white/70">Cancel anytime</p>
-              <OutlineButton href="/checkout?plan=monthly">
+              <OutlineButton href="/pricing?plan=monthly">
                 Start Monthly
                 <ArrowRight className="h-4 w-4" />
               </OutlineButton>
@@ -448,7 +448,7 @@ export default function LandingPage() {
               <div className="mt-4 text-5xl font-black">$79<span className="text-2xl">/year</span></div>
               <p className="mt-2 text-sm font-black text-white">5,000 AI content packs/year</p>
               <p className="mt-2 text-sm font-black text-[#8ff8df]">Save $65/year compared to monthly</p>
-              <PurpleButton href="/checkout?plan=yearly">
+              <PurpleButton href="/pricing?plan=yearly">
                 Start Yearly
                 <ArrowRight className="h-4 w-4" />
               </PurpleButton>
@@ -511,7 +511,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div>
-              <PurpleButton href="/checkout">
+              <PurpleButton href="/pricing">
                 Start Creating Content Today
                 <ArrowRight className="h-4 w-4" />
               </PurpleButton>

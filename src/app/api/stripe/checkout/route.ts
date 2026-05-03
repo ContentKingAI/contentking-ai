@@ -82,8 +82,8 @@ export async function POST(request: Request) {
       metadata: {
         plan
       },
-      success_url: `${appUrl}/signup?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/checkout?canceled=true`
+      success_url: `${appUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/pricing?canceled=true`
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to create Stripe Checkout session.";

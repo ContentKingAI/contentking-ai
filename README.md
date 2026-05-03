@@ -10,8 +10,8 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 - Dashboard with subscription status, generator form, recent results, and billing link
 - Client-side demo generation for captions, reels hooks, hashtags, and a 7-day calendar
 - Saved generation history in localStorage
-- Billing page with mock monthly/yearly subscription activation, cancellation, and content pack credit tracking
-- Monthly plan: $12/month with 300 AI content packs/month
+- Billing page with mock monthly/yearly subscription management and content pack credit tracking
+- Monthly plan: $12/month with 500 AI content packs/month
 - Yearly plan: $79/year with 5,000 AI content packs/year
 - Admin-ready modules for future users, subscriptions, generations, and templates
 
@@ -36,15 +36,16 @@ NEXT_PUBLIC_DEMO_ACCESS_CODE=KING2026
 ### Paid customer access
 
 - Public routes: `/` and `/pricing`
-- Paid checkout route: `/checkout`
-- Choosing a plan stores mock checkout state in localStorage:
+- Plan selection routes: `/pricing` and `/checkout`
+- Choosing a plan stores selected plan state in localStorage:
   - `selectedPlan`
   - `subscriptionStatus`
   - `textGenerationLimit`
   - `textGenerationsUsed`
-- Signup and login are part of the paid customer flow
+- Signup and login display the selected plan and then start Stripe Checkout
+- Successful Stripe payment returns to `/dashboard?payment=success`
 - `/dashboard`, `/dashboard/history`, `/dashboard/billing`, and `/admin` require a signed-in user with an active mock subscription
-- If a user visits paid dashboard routes without an active subscription, they are sent to `/checkout`
+- If a user visits paid dashboard routes without payment/subscription success, they are sent to `/pricing`
 
 ## Service layer
 
@@ -59,7 +60,7 @@ Today those services use localStorage and deterministic mock content. Later they
 
 ## Stripe checkout
 
-The checkout buttons call `POST /api/stripe/checkout` with `{ "plan": "monthly" }` or `{ "plan": "yearly" }`.
+After signup or login, the app calls `POST /api/stripe/checkout` with `{ "plan": "monthly" }` or `{ "plan": "yearly" }`.
 
 Set these variables to use real Stripe Checkout subscriptions:
 
@@ -72,7 +73,18 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Use recurring Stripe Price IDs that start with `price_` for `STRIPE_MONTHLY_PRICE_ID` and `STRIPE_YEARLY_PRICE_ID`. Product IDs that start with `prod_` cannot be used as Checkout line item prices.
 
-If `STRIPE_SECRET_KEY` is missing, `/checkout` falls back to the local mock subscription flow so the prototype keeps working without real payment credentials.
+If `STRIPE_SECRET_KEY` is missing, signup/login falls back to the local mock subscription flow so the prototype keeps working without real payment credentials.
+
+For Vercel, add these Environment Variables in the project settings:
+
+```bash
+STRIPE_SECRET_KEY=
+STRIPE_MONTHLY_PRICE_ID=
+STRIPE_YEARLY_PRICE_ID=
+NEXT_PUBLIC_APP_URL=https://contentking-ai.vercel.app
+```
+
+Redeploy the Vercel project after adding or changing environment variables.
 
 ## Local setup
 

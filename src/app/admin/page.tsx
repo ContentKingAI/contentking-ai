@@ -60,7 +60,7 @@ function AdminContent() {
         <div className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-8 text-center shadow-sm">
           <ShieldCheck className="mx-auto h-8 w-8 text-coral" />
           <h1 className="mt-4 text-3xl font-black text-ink">Admin access needs a paid account.</h1>
-          <ButtonLink className="mt-6" href="/checkout">
+          <ButtonLink className="mt-6" href="/pricing">
             Choose a plan
           </ButtonLink>
         </div>

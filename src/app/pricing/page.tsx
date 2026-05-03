@@ -2,11 +2,13 @@
 
 import { Check, CreditCard, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
 import { formatDate, formatMoney } from "@/lib/format";
-import { billingPlans } from "@/services/billingService";
+import { authService } from "@/services/authService";
+import { billingPlans, billingService } from "@/services/billingService";
 import type { BillingPlanId } from "@/types/saas";
 
 const planFeatures = [
@@ -21,9 +23,24 @@ const planOrder: BillingPlanId[] = ["monthly", "yearly"];
 export default function PricingPage() {
   const router = useRouter();
   const { isSubscribed, subscription } = useAppState();
+  const [statusMessage, setStatusMessage] = useState("");
+  const [preferredPlan, setPreferredPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    setPreferredPlan(plan);
+
+    if (params.get("canceled") === "true") {
+      billingService.clearCheckoutSelection();
+      authService.clearPendingSignUp();
+      setStatusMessage("Payment was canceled. Choose a plan when you are ready.");
+    }
+  }, []);
 
   function handleSubscribe(planId: BillingPlanId) {
-    router.push(`/checkout?plan=${planId}`);
+    billingService.selectCheckoutPlan(planId);
+    router.push(`/signup?plan=${planId}`);
   }
 
   return (
@@ -33,20 +50,27 @@ export default function PricingPage() {
           <Badge tone="success">Flexible prototype pricing</Badge>
           <h1 className="mt-5 text-4xl font-black text-ink sm:text-5xl">Pricing for ContentKing AI</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-ink/70">
-            Choose monthly for flexibility or yearly for the best value. Both plans start with the paid checkout flow.
+            Choose a plan first, create your account, then finish securely through Stripe Checkout.
           </p>
         </div>
+
+        {statusMessage ? (
+          <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-honey/30 bg-honey/15 p-4 text-sm font-semibold text-ink">
+            {statusMessage}
+          </div>
+        ) : null}
 
         <div className="mt-10 grid gap-5 lg:grid-cols-2">
           {planOrder.map((planId) => {
             const plan = billingPlans[planId];
             const isYearly = planId === "yearly";
             const isCurrentPlan = isSubscribed && subscription?.plan === planId;
+            const isPreferred = preferredPlan === planId;
 
             return (
               <article
                 className={`relative rounded-lg border bg-white p-6 shadow-soft ${
-                  isYearly ? "border-mint ring-2 ring-mint/20" : "border-ink/10"
+                  isYearly || isPreferred ? "border-mint ring-2 ring-mint/20" : "border-ink/10"
                 }`}
                 key={plan.id}
               >

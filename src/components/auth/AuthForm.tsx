@@ -2,33 +2,94 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { Crown, Loader2 } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { CreditCard, Crown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
+import { formatMoney } from "@/lib/format";
+import { authService } from "@/services/authService";
+import { billingPlans, billingService } from "@/services/billingService";
+import type { BillingPlanId } from "@/types/saas";
+
+function isBillingPlanId(value: string | null): value is BillingPlanId {
+  return value === "monthly" || value === "yearly";
+}
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
-  const { signIn, signUp } = useAppState();
+  const { refresh } = useAppState();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("creator@contentking.ai");
   const [password, setPassword] = useState("contentking");
+  const [selectedPlan, setSelectedPlan] = useState<BillingPlanId | null>(null);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSignup = mode === "signup";
+  const activePlan = selectedPlan ? billingPlans[selectedPlan] : null;
+
+  useEffect(() => {
+    const queryPlan = new URLSearchParams(window.location.search).get("plan");
+
+    if (isBillingPlanId(queryPlan)) {
+      billingService.selectCheckoutPlan(queryPlan);
+      setSelectedPlan(queryPlan);
+      return;
+    }
+
+    setSelectedPlan(billingService.getCheckoutSelection()?.plan ?? null);
+  }, []);
+
+  async function startPayment(planId: BillingPlanId) {
+    const response = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ plan: planId })
+    });
+    const data = (await response.json()) as { url?: string; error?: string; code?: string };
+
+    if (response.ok && data.url) {
+      window.location.assign(data.url);
+      return;
+    }
+
+    if (data.code === "stripe_not_configured") {
+      billingService.markPaymentSuccess(planId);
+      const session = isSignup ? await authService.completePendingSignUp() : await authService.getSession();
+
+      if (!session) {
+        throw new Error("Unable to finish mock checkout.");
+      }
+
+      await billingService.activateSelectedPlanForUser(session.user.id);
+      await refresh();
+      router.push("/dashboard");
+      return;
+    }
+
+    throw new Error(data.error ?? "Unable to start Stripe Checkout.");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (!selectedPlan) {
+      setError("Choose a plan first");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       if (isSignup) {
-        await signUp({ name, email, password });
+        await authService.prepareSignUp({ name, email, password });
       } else {
-        await signIn({ email, password });
+        await authService.signIn({ email, password });
       }
-      router.push("/dashboard");
+
+      await startPayment(selectedPlan);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
     } finally {
@@ -47,6 +108,24 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           <p className="text-sm text-ink/60">Paid customer access using local prototype auth.</p>
         </div>
       </div>
+
+      {activePlan ? (
+        <div className="mt-5 rounded-lg border border-mint/25 bg-mint/10 p-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-ink">
+              <CreditCard className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-xs font-black uppercase text-ink/60">Selected plan</p>
+              <h2 className="mt-1 text-lg font-black text-ink">{activePlan.title}</h2>
+              <p className="mt-1 text-sm font-semibold text-ink/70">
+                {formatMoney(activePlan.priceCents)} / {activePlan.billingInterval} -{" "}
+                {activePlan.textGenerationLimit.toLocaleString()} AI content packs
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         {isSignup ? (
@@ -89,13 +168,16 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         <Button className="w-full" disabled={isSubmitting} type="submit">
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {isSignup ? "Create account" : "Log in"}
+          {isSubmitting ? "Opening Stripe Checkout..." : isSignup ? "Create account and pay" : "Log in and pay"}
         </Button>
       </form>
 
       <p className="mt-5 text-center text-sm text-ink/60">
         {isSignup ? "Already have an account?" : "Need an account?"}{" "}
-        <Link className="font-black text-ink underline decoration-mint decoration-2 underline-offset-4" href={isSignup ? "/login" : "/signup"}>
+        <Link
+          className="font-black text-ink underline decoration-mint decoration-2 underline-offset-4"
+          href={`${isSignup ? "/login" : "/signup"}${selectedPlan ? `?plan=${selectedPlan}` : ""}`}
+        >
           {isSignup ? "Log in" : "Sign up"}
         </Link>
       </p>

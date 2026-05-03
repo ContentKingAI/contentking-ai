@@ -147,10 +147,10 @@ export function DemoGeneratorForm() {
         </form>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <ButtonLink href="/checkout?plan=monthly" variant="secondary">
+          <ButtonLink href="/pricing?plan=monthly" variant="secondary">
             Start Monthly &mdash; $12/month
           </ButtonLink>
-          <ButtonLink href="/checkout?plan=yearly">
+          <ButtonLink href="/pricing?plan=yearly">
             Start Yearly &mdash; $79/year
           </ButtonLink>
         </div>

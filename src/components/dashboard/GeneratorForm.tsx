@@ -67,10 +67,10 @@ export function GeneratorForm() {
               Choose a monthly or yearly plan to test the full generation and save flow.
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <ButtonLink href="/checkout?plan=monthly" variant="secondary">
+              <ButtonLink href="/pricing?plan=monthly" variant="secondary">
                 Start Monthly
               </ButtonLink>
-              <ButtonLink href="/checkout?plan=yearly">
+              <ButtonLink href="/pricing?plan=yearly">
                 Start Yearly
               </ButtonLink>
             </div>

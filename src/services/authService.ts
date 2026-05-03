@@ -3,6 +3,7 @@ import type { UserRecord } from "@/types/saas";
 
 const USERS_KEY = "contentking.users";
 const SESSION_KEY = "contentking.session";
+const PENDING_SIGNUP_KEY = "contentking.pendingSignup";
 
 interface StoredUser extends UserRecord {
   passwordToken: string;
@@ -98,6 +99,34 @@ export const authService = {
     writeUsers([user, ...users]);
     writeSession(user.id);
     return { user: publicUser(user) };
+  },
+
+  async prepareSignUp(input: SignupInput) {
+    const email = normalizeEmail(input.email);
+    const password = input.password.trim();
+    const name = input.name.trim() || "ContentKing Creator";
+
+    if (!email || !password) {
+      throw new Error("Enter an email and password to create your account.");
+    }
+
+    writeJson(PENDING_SIGNUP_KEY, { name, email, password });
+  },
+
+  async completePendingSignUp(): Promise<AuthSession | null> {
+    const pendingSignup = readJson<SignupInput | null>(PENDING_SIGNUP_KEY, null);
+
+    if (!pendingSignup) {
+      return null;
+    }
+
+    const session = await this.signUp(pendingSignup);
+    removeStorage(PENDING_SIGNUP_KEY);
+    return session;
+  },
+
+  clearPendingSignUp() {
+    removeStorage(PENDING_SIGNUP_KEY);
   },
 
   async signIn(input: AuthCredentials): Promise<AuthSession> {

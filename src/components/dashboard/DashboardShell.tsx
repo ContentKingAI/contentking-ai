@@ -42,7 +42,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <ButtonLink href="/demo" variant="secondary">
               Try demo
             </ButtonLink>
-            <ButtonLink href="/checkout">Choose a plan</ButtonLink>
+            <ButtonLink href="/pricing">Choose a plan</ButtonLink>
           </div>
         </div>
       </section>

@@ -72,7 +72,7 @@ export const billingPlans: Record<
     priceCents: 1200,
     billingInterval: "month",
     interval: "month",
-    textGenerationLimit: 300,
+    textGenerationLimit: 500,
     cta: "Start Monthly",
     description: "Cancel anytime",
     stripeEnvKey: "STRIPE_MONTHLY_PRICE_ID"
@@ -133,10 +133,10 @@ function readCheckoutSelection(): CheckoutSelection | null {
   };
 }
 
-function writeCheckoutSelection(planId: BillingPlanId) {
+function writeCheckoutSelection(planId: BillingPlanId, subscriptionStatus: MockSubscriptionStatus = "inactive") {
   const plan = billingPlans[planId];
   writeJson(SELECTED_PLAN_KEY, plan.id);
-  writeJson(CHECKOUT_STATUS_KEY, "active");
+  writeJson(CHECKOUT_STATUS_KEY, subscriptionStatus);
   writeJson(CHECKOUT_LIMIT_KEY, plan.textGenerationLimit);
   writeJson(CHECKOUT_USED_KEY, 0);
   return readCheckoutSelection();
@@ -307,12 +307,26 @@ export const billingService = {
     return readCheckoutSelection();
   },
 
+  hasSelectedPlan() {
+    return readCheckoutSelection() !== null;
+  },
+
   hasActiveCheckoutSelection() {
     return readCheckoutSelection()?.subscriptionStatus === "active";
   },
 
   selectCheckoutPlan(planId: BillingPlanId): CheckoutSelection | null {
-    return writeCheckoutSelection(planId);
+    return writeCheckoutSelection(planId, "inactive");
+  },
+
+  markPaymentSuccess(planId?: BillingPlanId): CheckoutSelection | null {
+    const selectedPlan = planId ?? readCheckoutSelection()?.plan;
+
+    if (!selectedPlan) {
+      return null;
+    }
+
+    return writeCheckoutSelection(selectedPlan, "active");
   },
 
   clearCheckoutSelection() {

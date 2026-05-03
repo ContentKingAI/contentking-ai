@@ -45,7 +45,7 @@ export function SubscriptionPanel() {
               Manage billing
             </Link>
           ) : (
-            <ButtonLink href="/checkout">Choose a plan</ButtonLink>
+            <ButtonLink href="/pricing">Choose a plan</ButtonLink>
           )}
         </div>
       </div>

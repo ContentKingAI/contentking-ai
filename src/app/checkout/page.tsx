@@ -5,24 +5,22 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { useAppState } from "@/context/AppStateProvider";
 import { formatMoney } from "@/lib/format";
+import { authService } from "@/services/authService";
 import { billingPlans, billingService } from "@/services/billingService";
 import type { BillingPlanId } from "@/types/saas";
 
 const planOrder: BillingPlanId[] = ["monthly", "yearly"];
 
 const planFeatures: Record<BillingPlanId, string[]> = {
-  monthly: ["300 AI content packs/month", "Cancel anytime", "Mock subscription activated instantly"],
+  monthly: ["500 AI content packs/month", "Cancel anytime", "Secure Stripe payment after signup"],
   yearly: ["5,000 AI content packs/year", "Save $65/year", "Best value for consistent posting"]
 };
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { activateSubscription, user } = useAppState();
   const [preferredPlan, setPreferredPlan] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
-  const [error, setError] = useState("");
   const [isChoosing, setIsChoosing] = useState<BillingPlanId | null>(null);
 
   useEffect(() => {
@@ -31,53 +29,15 @@ export default function CheckoutPage() {
 
     if (params.get("canceled") === "true") {
       billingService.clearCheckoutSelection();
+      authService.clearPendingSignUp();
       setStatusMessage("Checkout was canceled. Choose a plan when you are ready.");
     }
   }, []);
 
-  async function runMockCheckout(planId: BillingPlanId) {
-    billingService.selectCheckoutPlan(planId);
-
-    if (user) {
-      await activateSubscription(planId);
-      router.push("/dashboard");
-      return;
-    }
-
-    router.push("/signup");
-  }
-
-  async function handleChoosePlan(planId: BillingPlanId) {
+  function handleChoosePlan(planId: BillingPlanId) {
     setIsChoosing(planId);
-    setError("");
-    setStatusMessage("");
-
-    try {
-      const response = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ plan: planId })
-      });
-      const data = (await response.json()) as { url?: string; error?: string; code?: string };
-
-      if (response.ok && data.url) {
-        billingService.selectCheckoutPlan(planId);
-        window.location.assign(data.url);
-        return;
-      }
-
-      if (data.code === "stripe_not_configured") {
-        await runMockCheckout(planId);
-        return;
-      }
-
-      throw new Error(data.error ?? "Unable to start checkout.");
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Unable to start checkout.");
-      setIsChoosing(null);
-    }
+    billingService.selectCheckoutPlan(planId);
+    router.push(`/signup?plan=${planId}`);
   }
 
   return (
@@ -87,19 +47,13 @@ export default function CheckoutPage() {
           <Badge tone="success">Paid customer checkout</Badge>
           <h1 className="mt-5 text-4xl font-black text-ink sm:text-5xl">Choose your ContentKing AI plan</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-ink/70">
-            Start with Stripe Checkout when configured, or use the local mock fallback while keys are missing.
+            Pick monthly or yearly, create your account, then finish payment through Stripe Checkout.
           </p>
         </div>
 
         {statusMessage ? (
           <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-honey/30 bg-honey/15 p-4 text-sm font-semibold text-ink">
             {statusMessage}
-          </div>
-        ) : null}
-
-        {error ? (
-          <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-coral/25 bg-coral/10 p-4 text-sm font-semibold text-ink">
-            {error}
           </div>
         ) : null}
 
@@ -159,7 +113,7 @@ export default function CheckoutPage() {
                   variant={isYearly ? "primary" : "secondary"}
                 >
                   <Sparkles className="h-4 w-4" />
-                  {isChoosing === planId ? "Activating..." : plan.cta}
+                  {isChoosing === planId ? "Selecting..." : plan.cta}
                 </Button>
               </article>
             );
@@ -167,7 +121,7 @@ export default function CheckoutPage() {
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-6 text-ink/60">
-          Security note: `STRIPE_SECRET_KEY` is only read in the server route. If it is missing, this prototype falls back to the local mock checkout flow.
+          Security note: payment starts after signup or login. `STRIPE_SECRET_KEY` is only read by the server route.
         </p>
       </div>
     </section>
