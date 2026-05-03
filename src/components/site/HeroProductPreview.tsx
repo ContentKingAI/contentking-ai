@@ -19,7 +19,7 @@ export function HeroProductPreview() {
               <p className="text-xs font-black uppercase text-coral">Weekly pack</p>
               <h2 className="mt-1 text-2xl font-black text-ink">GlowBar Studio</h2>
             </div>
-            <Badge tone="success">Active yearly</Badge>
+            <Badge tone="success">Yearly active</Badge>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {mockCaptions.map((caption) => (

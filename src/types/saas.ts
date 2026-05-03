@@ -7,6 +7,12 @@ export type SubscriptionStatus =
   | "past_due"
   | "canceled";
 
+export type BillingPlanId = "monthly" | "yearly";
+
+export type BillingInterval = "month" | "year";
+
+export type MockSubscriptionStatus = "active" | "inactive";
+
 export type Tone =
   | "Friendly"
   | "Professional"
@@ -42,10 +48,17 @@ export interface SubscriptionRecord {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   status: SubscriptionStatus;
+  subscriptionStatus: MockSubscriptionStatus;
+  plan: BillingPlanId;
+  planId?: BillingPlanId;
   planName: string;
+  price: 12 | 79;
   priceCents: number;
   currency: "usd";
-  interval: "year";
+  billingInterval: BillingInterval;
+  interval: BillingInterval;
+  textGenerationLimit: number;
+  textGenerationsUsed: number;
   currentPeriodStart?: string;
   currentPeriodEnd?: string;
   createdAt: string;

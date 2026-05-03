@@ -1,16 +1,23 @@
 "use client";
 
-import { CreditCard, ExternalLink, RotateCcw, ShieldCheck } from "lucide-react";
+import { CreditCard, ExternalLink, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
-import { billingService } from "@/services/billingService";
+import { billingPlans, billingService, extraCreditAddOns } from "@/services/billingService";
 import { formatDate, formatMoney } from "@/lib/format";
+import type { BillingPlanId } from "@/types/saas";
+
+const planOrder: BillingPlanId[] = ["monthly", "yearly"];
 
 export default function BillingPage() {
   const { user, subscription, isSubscribed, activateSubscription, cancelSubscription } = useAppState();
   const [portalMessage, setPortalMessage] = useState("");
+  const activePlan = subscription ? billingPlans[subscription.plan] : billingPlans.yearly;
+  const creditsUsed = subscription?.textGenerationsUsed ?? 0;
+  const creditsLimit = activePlan.textGenerationLimit;
+  const creditsLeft = Math.max(0, creditsLimit - creditsUsed);
 
   async function handlePortal() {
     if (!user) {
@@ -21,28 +28,35 @@ export default function BillingPage() {
     setPortalMessage(`Mock customer portal ready at ${portal.url}`);
   }
 
+  async function handleChoosePlan(planId: BillingPlanId) {
+    setPortalMessage("");
+    await activateSubscription(planId);
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <p className="text-sm font-black uppercase text-coral">Billing</p>
         <h1 className="mt-2 text-3xl font-black text-ink sm:text-4xl">Subscription management</h1>
-        <p className="mt-2 text-ink/70">Mock Stripe state now, production Checkout and Portal later.</p>
+        <p className="mt-2 text-ink/70">Choose monthly or yearly in the mock billing flow today, then wire this to Stripe later.</p>
       </div>
 
       <section className="rounded-lg border border-ink/10 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <Badge tone={isSubscribed ? "success" : "warning"}>
-              {isSubscribed ? "Active subscription" : "No active subscription"}
+              {isSubscribed ? `${activePlan.title} plan active` : "No active subscription"}
             </Badge>
-            <h2 className="mt-4 text-2xl font-black text-ink">ContentKing AI Yearly</h2>
+            <h2 className="mt-4 text-2xl font-black text-ink">
+              {isSubscribed ? activePlan.name : "Choose a ContentKing AI plan"}
+            </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
-              The billing panel is mocked now and ready for Checkout, webhooks, and Customer Portal later.
+              The selected plan and text credit usage are stored in the existing mock subscription state.
             </p>
           </div>
           <div className="rounded-lg bg-cloud p-4 text-right">
-            <p className="text-4xl font-black text-ink">{formatMoney(subscription?.priceCents ?? 6700)}</p>
-            <p className="text-sm font-bold text-ink/60">per year</p>
+            <p className="text-4xl font-black text-ink">{formatMoney(activePlan.priceCents)}</p>
+            <p className="text-sm font-bold text-ink/60">per {activePlan.billingInterval}</p>
           </div>
         </div>
 
@@ -50,19 +64,102 @@ export default function BillingPage() {
           <div className="rounded-lg bg-cloud p-4">
             <ShieldCheck className="h-5 w-5 text-mint" />
             <p className="mt-3 text-sm font-black text-ink">Status</p>
-            <p className="mt-1 text-sm text-ink/60">{subscription?.status ?? "inactive"}</p>
+            <p className="mt-1 text-sm text-ink/60">{subscription?.subscriptionStatus ?? "inactive"}</p>
           </div>
           <div className="rounded-lg bg-cloud p-4">
             <CreditCard className="h-5 w-5 text-coral" />
-            <p className="mt-3 text-sm font-black text-ink">Renewal</p>
-            <p className="mt-1 text-sm text-ink/60">{formatDate(subscription?.currentPeriodEnd)}</p>
+            <p className="mt-3 text-sm font-black text-ink">Active plan</p>
+            <p className="mt-1 text-sm text-ink/60">{isSubscribed ? activePlan.title : "None"}</p>
           </div>
           <div className="rounded-lg bg-cloud p-4">
             <RotateCcw className="h-5 w-5 text-honey" />
-            <p className="mt-3 text-sm font-black text-ink">Provider</p>
-            <p className="mt-1 text-sm text-ink/60">Mock Stripe</p>
+            <p className="mt-3 text-sm font-black text-ink">Renewal</p>
+            <p className="mt-1 text-sm text-ink/60">{formatDate(subscription?.currentPeriodEnd)}</p>
           </div>
         </div>
+
+        {isSubscribed ? (
+          <div className="mt-6 rounded-lg border border-ink/10 bg-cloud p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-black text-ink">Text generation credits</p>
+                <p className="mt-1 text-sm text-ink/70">
+                  Text credits left: {creditsLeft} / {creditsLimit}
+                </p>
+              </div>
+              <p className="text-sm font-semibold text-ink/60">
+                {creditsUsed.toLocaleString()} used this billing {activePlan.billingInterval}
+              </p>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+              <div
+                className="h-full rounded-full bg-mint"
+                style={{ width: `${Math.min(100, (creditsUsed / creditsLimit) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {planOrder.map((planId) => {
+            const plan = billingPlans[planId];
+            const isYearly = planId === "yearly";
+            const isCurrentPlan = isSubscribed && subscription?.plan === planId;
+
+            return (
+              <article
+                className={`relative rounded-lg border p-5 ${
+                  isYearly ? "border-mint bg-mint/5 ring-2 ring-mint/15" : "border-ink/10 bg-white"
+                }`}
+                key={plan.id}
+              >
+                {isYearly ? (
+                  <span className="absolute right-4 top-4 rounded-full bg-ink px-3 py-1 text-xs font-black uppercase text-white">
+                    {plan.label}
+                  </span>
+                ) : null}
+                <p className="text-sm font-black uppercase text-coral">
+                  {isYearly ? "Recommended" : plan.label}
+                </p>
+                <h3 className="mt-2 text-xl font-black text-ink">{plan.name}</h3>
+                <div className="mt-4 flex items-end gap-2">
+                  <span className="text-4xl font-black text-ink">{formatMoney(plan.priceCents)}</span>
+                  <span className="pb-1 text-sm font-semibold text-ink/60">per {plan.billingInterval}</span>
+                </div>
+                <p className={`mt-3 text-sm font-black ${isYearly ? "text-mint" : "text-ink/60"}`}>
+                  {plan.description}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-ink/70">
+                  {plan.textGenerationLimit.toLocaleString()} text generations per {plan.billingInterval}
+                </p>
+                <Button
+                  className="mt-5 w-full"
+                  disabled={isCurrentPlan}
+                  onClick={() => handleChoosePlan(planId)}
+                  variant={isYearly ? "primary" : "secondary"}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {isCurrentPlan ? "Current plan" : isSubscribed ? `Switch to ${plan.title}` : plan.cta}
+                </Button>
+              </article>
+            );
+          })}
+        </div>
+
+        <section className="mt-6 rounded-lg border border-ink/10 bg-white p-5">
+          <p className="text-sm font-black uppercase text-coral">Future add-ons</p>
+          <h3 className="mt-2 text-xl font-black text-ink">Extra text generation credits</h3>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {extraCreditAddOns.map((addOn) => (
+              <article className="rounded-lg bg-cloud p-4" key={addOn.id}>
+                <p className="text-2xl font-black text-ink">{addOn.credits.toLocaleString()}</p>
+                <p className="text-sm font-semibold text-ink/60">extra text generations</p>
+                <p className="mt-3 text-lg font-black text-ink">${addOn.price}</p>
+                <p className="mt-1 text-xs font-bold text-ink/50">{addOn.stripeEnvKey}</p>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           {isSubscribed ? (
@@ -75,12 +172,7 @@ export default function BillingPage() {
                 Cancel demo plan
               </Button>
             </>
-          ) : (
-            <Button onClick={activateSubscription}>
-              <CreditCard className="h-4 w-4" />
-              Subscribe yearly
-            </Button>
-          )}
+          ) : null}
         </div>
 
         {portalMessage ? (

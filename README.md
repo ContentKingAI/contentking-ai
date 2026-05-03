@@ -4,12 +4,14 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 
 ## What is included
 
-- Landing page and $67/year pricing page
+- Landing page and monthly/yearly pricing page
 - Mock signup/login/logout
 - Dashboard with subscription status, generator form, recent results, and billing link
 - Client-side demo generation for captions, reels hooks, hashtags, and a 7-day calendar
 - Saved generation history in localStorage
-- Billing page with mock yearly subscription activation/cancellation
+- Billing page with mock monthly/yearly subscription activation, cancellation, and text credit tracking
+- Monthly plan: $12/month with 300 text generations
+- Yearly plan: $79/year with 3,000 text generations
 - Admin-ready modules for future users, subscriptions, generations, and templates
 
 ## Service layer

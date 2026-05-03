@@ -34,7 +34,7 @@ export function GeneratorForm() {
     setError("");
 
     if (!isSubscribed) {
-      setError("Activate the $67/year plan to unlock generation in this prototype.");
+      setError("Activate a monthly or yearly plan to unlock generation in this prototype.");
       return;
     }
 
@@ -64,12 +64,16 @@ export function GeneratorForm() {
           <div className="mt-5 rounded-lg border border-honey/30 bg-honey/15 p-4">
             <h3 className="font-black text-ink">Generation locked</h3>
             <p className="mt-2 text-sm leading-6 text-ink/70">
-              Activate the mock yearly plan to test the full generation and save flow.
+              Activate a mock monthly or yearly plan to test the full generation and save flow.
             </p>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Button onClick={activateSubscription}>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <Button onClick={() => activateSubscription("monthly")} variant="secondary">
                 <Sparkles className="h-4 w-4" />
-                Subscribe yearly
+                Monthly
+              </Button>
+              <Button onClick={() => activateSubscription("yearly")}>
+                <Sparkles className="h-4 w-4" />
+                Yearly
               </Button>
               <ButtonLink href="/pricing" variant="secondary">
                 See pricing

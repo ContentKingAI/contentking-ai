@@ -101,7 +101,8 @@ const audiences: IconCard[] = [
 ];
 
 const pricingFeatures = [
-  "Unlimited content generation",
+  "300 monthly text generations",
+  "3,000 yearly text generations",
   "Captions",
   "Reels hooks",
   "Hashtags",
@@ -264,7 +265,7 @@ export default function LandingPage() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <PurpleButton href="/signup">
-                  Start for $67/year
+                  Start from $12/month
                   <ArrowRight className="h-4 w-4" />
                 </PurpleButton>
                 <OutlineButton href="/dashboard">
@@ -448,19 +449,32 @@ export default function LandingPage() {
         <div className="absolute bottom-0 right-0 h-56 w-56 translate-x-20 translate-y-16 rotate-12 rounded-lg bg-[#17213b] opacity-45" />
         <div className="mx-auto max-w-7xl">
           <SectionLabel number={7} label="Pricing Section" light />
-          <div className="grid gap-5 py-10 lg:grid-cols-[0.78fr_1.22fr]">
+          <div className="grid gap-5 py-10 lg:grid-cols-[0.55fr_0.55fr_1fr]">
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
-              <p className="text-sm text-white/80">Simple pricing. No confusion.</p>
-              <div className="mt-4 text-6xl font-black">$67<span className="text-3xl">/year</span></div>
-              <p className="mt-2 text-sm text-white/70">Just $5.58/month</p>
+              <p className="text-sm font-bold text-white/80">Monthly</p>
+              <div className="mt-4 text-5xl font-black">$12<span className="text-2xl">/month</span></div>
+              <p className="mt-2 text-sm font-black text-white">300 text generations/month</p>
+              <p className="mt-2 text-sm text-white/70">Cancel anytime</p>
+              <OutlineButton href="/signup">
+                Start Monthly
+                <ArrowRight className="h-4 w-4" />
+              </OutlineButton>
+            </article>
+            <article className="relative rounded-lg border border-[#8a6bff] bg-white/[0.07] p-7 text-center shadow-lg shadow-[#6d3cff]/20 ring-2 ring-[#8a6bff]/20">
+              <span className="absolute right-4 top-4 rounded-full bg-[#8a6bff] px-3 py-1 text-xs font-black uppercase text-white">
+                Best Value
+              </span>
+              <p className="text-sm font-bold text-white/80">Yearly</p>
+              <div className="mt-4 text-5xl font-black">$79<span className="text-2xl">/year</span></div>
+              <p className="mt-2 text-sm font-black text-white">3,000 text generations/year</p>
+              <p className="mt-2 text-sm font-black text-[#8ff8df]">Save $65/year compared to monthly</p>
               <PurpleButton href="/signup">
-                Get ContentKing AI for $67/year
+                Start Yearly
                 <ArrowRight className="h-4 w-4" />
               </PurpleButton>
-              <p className="mt-4 text-xs text-white/60">Cancel anytime before renewal.</p>
             </article>
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 shadow-lg shadow-black/20">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 {pricingFeatures.map((item) => (
                   <div className="flex items-center gap-3 text-sm font-semibold text-white/85" key={item}>
                     <BadgeCheck className="h-5 w-5 text-[#8a6bff]" />

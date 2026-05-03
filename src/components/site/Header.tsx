@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
 import { cn } from "@/lib/format";
+import { billingPlans } from "@/services/billingService";
 
 const navItems = [
   { href: "/pricing", label: "Pricing" },
@@ -16,8 +17,9 @@ const navItems = [
 
 export function Header() {
   const router = useRouter();
-  const { user, signOut, isSubscribed } = useAppState();
+  const { user, signOut, isSubscribed, subscription } = useAppState();
   const [open, setOpen] = useState(false);
+  const activePlanLabel = subscription ? billingPlans[subscription.plan].title : "Plan";
 
   async function handleSignOut() {
     await signOut();
@@ -51,7 +53,7 @@ export function Header() {
             <>
               <span className="inline-flex items-center gap-2 rounded-lg bg-cloud px-3 py-2 text-sm font-semibold text-ink">
                 <Sparkles className={cn("h-4 w-4", isSubscribed ? "text-mint" : "text-honey")} />
-                {isSubscribed ? "Yearly active" : "Demo account"}
+                {isSubscribed ? `${activePlanLabel} active` : "Demo account"}
               </span>
               <Button variant="ghost" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />

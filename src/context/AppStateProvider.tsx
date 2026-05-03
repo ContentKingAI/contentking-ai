@@ -14,6 +14,7 @@ import { authService, type AuthCredentials, type SignupInput } from "@/services/
 import { billingService } from "@/services/billingService";
 import { historyService } from "@/services/historyService";
 import type {
+  BillingPlanId,
   GenerationInput,
   GenerationRecord,
   SubscriptionRecord,
@@ -29,7 +30,7 @@ interface AppStateContextValue {
   signUp(input: SignupInput): Promise<void>;
   signIn(input: AuthCredentials): Promise<void>;
   signOut(): Promise<void>;
-  activateSubscription(): Promise<void>;
+  activateSubscription(planId?: BillingPlanId): Promise<void>;
   cancelSubscription(): Promise<void>;
   generateContent(input: GenerationInput): Promise<GenerationRecord>;
   deleteGeneration(id: string): Promise<void>;
@@ -39,7 +40,7 @@ interface AppStateContextValue {
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
 function isActive(subscription: SubscriptionRecord | null) {
-  return subscription?.status === "active" || subscription?.status === "trialing";
+  return subscription?.subscriptionStatus === "active";
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
@@ -98,12 +99,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setSubscription(null);
         setGenerations([]);
       },
-      async activateSubscription() {
+      async activateSubscription(planId = "yearly") {
         if (!user) {
           throw new Error("Sign in before subscribing.");
         }
 
-        const nextSubscription = await billingService.activateYearlyPlan(user.id);
+        const nextSubscription = await billingService.activatePlan(user.id, planId);
         setSubscription(nextSubscription);
       },
       async cancelSubscription() {
@@ -120,9 +121,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         }
 
         if (!isActive(subscription)) {
-          throw new Error("Activate the yearly plan to generate content.");
+          throw new Error("Activate a monthly or yearly plan to generate content.");
         }
 
+        const chargedSubscription = await billingService.consumeTextGeneration(user.id);
+        setSubscription(chargedSubscription);
         const output = await aiService.generateContent(input);
         const generation = await historyService.saveGeneration(user.id, input, output);
         setGenerations((current) => [generation, ...current]);

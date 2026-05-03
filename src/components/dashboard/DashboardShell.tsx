@@ -5,6 +5,7 @@ import { BarChart3, CreditCard, History, Home, ShieldCheck } from "lucide-react"
 import { ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
 import { cn } from "@/lib/format";
+import { billingPlans } from "@/services/billingService";
 
 const dashboardNav = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -14,7 +15,8 @@ const dashboardNav = [
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const { user, isReady, generations, isSubscribed } = useAppState();
+  const { user, isReady, generations, isSubscribed, subscription } = useAppState();
+  const activePlanLabel = subscription ? billingPlans[subscription.plan].title : "Locked";
 
   if (!isReady) {
     return (
@@ -64,7 +66,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </div>
               <div className="rounded-lg bg-cloud p-3">
                 <CreditCard className="h-4 w-4 text-mint" />
-                <p className="mt-2 text-sm font-black text-ink">{isSubscribed ? "Active" : "Locked"}</p>
+                <p className="mt-2 text-sm font-black text-ink">{isSubscribed ? activePlanLabel : "Locked"}</p>
                 <p className="text-xs font-bold text-ink/60">Plan</p>
               </div>
             </div>

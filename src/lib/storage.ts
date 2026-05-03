@@ -45,3 +45,9 @@ export function addYears(date: Date, years: number) {
   next.setFullYear(next.getFullYear() + years);
   return next;
 }
+
+export function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
