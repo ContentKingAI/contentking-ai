@@ -2,6 +2,7 @@
 
 import { Database, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DemoAccessGate } from "@/components/auth/DemoAccessGate";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
@@ -13,6 +14,14 @@ import { historyService } from "@/services/historyService";
 import type { GenerationRecord, SubscriptionRecord, UserRecord } from "@/types/saas";
 
 export default function AdminPage() {
+  return (
+    <DemoAccessGate>
+      <AdminContent />
+    </DemoAccessGate>
+  );
+}
+
+function AdminContent() {
   const { user, isReady } = useAppState();
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [subscriptions, setSubscriptions] = useState<SubscriptionRecord[]>([]);

@@ -19,7 +19,7 @@ const initialInput: GenerationInput = {
 };
 
 export function GeneratorForm() {
-  const { isSubscribed, generateContent, activateSubscription } = useAppState();
+  const { demoUsage, isSubscribed, generateContent, activateSubscription } = useAppState();
   const [input, setInput] = useState<GenerationInput>(initialInput);
   const [generation, setGeneration] = useState<GenerationRecord | null>(null);
   const [error, setError] = useState("");
@@ -57,6 +57,9 @@ export function GeneratorForm() {
           <h2 className="mt-2 text-2xl font-black text-ink">Create a weekly content pack</h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
             Create a complete short-form content pack from one focused business brief.
+          </p>
+          <p className="mt-4 rounded-lg bg-cloud px-4 py-3 text-sm font-black text-ink">
+            Demo generations left: {demoUsage.remaining} / {demoUsage.limit}
           </p>
         </div>
 

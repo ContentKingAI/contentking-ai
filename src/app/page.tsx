@@ -258,6 +258,10 @@ export default function LandingPage() {
                   See Demo
                   <PlayCircle className="h-4 w-4" />
                 </OutlineButton>
+                <OutlineButton href="/signup">
+                  Request Demo Access
+                  <LockKeyhole className="h-4 w-4" />
+                </OutlineButton>
               </div>
               <div className="mt-7 grid gap-3 text-xs font-bold text-white/70 sm:grid-cols-3">
                 {["7-Day Money Back Guarantee", "Cancel Anytime", "Secure Payments"].map((item) => (

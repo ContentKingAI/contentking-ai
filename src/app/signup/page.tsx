@@ -1,9 +1,12 @@
 import { AuthForm } from "@/components/auth/AuthForm";
+import { DemoAccessGate } from "@/components/auth/DemoAccessGate";
 
 export default function SignupPage() {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8">
-      <AuthForm mode="signup" />
-    </section>
+    <DemoAccessGate>
+      <section className="px-4 py-16 sm:px-6 lg:px-8">
+        <AuthForm mode="signup" />
+      </section>
+    </DemoAccessGate>
   );
 }
