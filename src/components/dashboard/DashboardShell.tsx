@@ -36,13 +36,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <p className="text-sm font-black uppercase text-coral">Sign in required</p>
           <h1 className="mt-3 text-3xl font-black text-ink">Open your ContentKing AI workspace.</h1>
           <p className="mt-3 text-ink/70">
-            The prototype keeps your session and generated packs in this browser.
+            Paid dashboard access starts with a monthly or yearly plan.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <ButtonLink href="/login" variant="secondary">
-              Log in
+            <ButtonLink href="/demo" variant="secondary">
+              Try demo
             </ButtonLink>
-            <ButtonLink href="/signup">Create account</ButtonLink>
+            <ButtonLink href="/checkout">Choose a plan</ButtonLink>
           </div>
         </div>
       </section>

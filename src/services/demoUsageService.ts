@@ -1,9 +1,9 @@
 import { readJson, writeJson } from "@/lib/storage";
 
-const DEMO_USAGE_KEY = "contentking.demoGenerationsUsed";
+const DEMO_USAGE_KEY = "demoGenerationsUsed";
 
 export const DEMO_GENERATION_LIMIT = 5;
-export const DEMO_LIMIT_REACHED_MESSAGE = "Demo limit reached. Contact us to unlock full access.";
+export const DEMO_LIMIT_REACHED_MESSAGE = "Demo limit reached. Choose a plan to continue.";
 
 export interface DemoUsage {
   used: number;

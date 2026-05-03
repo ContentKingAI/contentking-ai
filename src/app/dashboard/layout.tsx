@@ -1,10 +1,10 @@
-import { DemoAccessGate } from "@/components/auth/DemoAccessGate";
+import { PaidAccessGuard } from "@/components/auth/PaidAccessGuard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <DemoAccessGate>
+    <PaidAccessGuard>
       <DashboardShell>{children}</DashboardShell>
-    </DemoAccessGate>
+    </PaidAccessGuard>
   );
 }

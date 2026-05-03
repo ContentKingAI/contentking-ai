@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { CreditCard, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
 import { formatDate, formatMoney } from "@/lib/format";
 import { billingPlans } from "@/services/billingService";
 
 export function SubscriptionPanel() {
-  const { isSubscribed, subscription, activateSubscription } = useAppState();
+  const { isSubscribed, subscription } = useAppState();
   const activePlan = subscription ? billingPlans[subscription.plan] : billingPlans.yearly;
   const intervalLabel = activePlan.billingInterval === "year" ? "/year" : "/month";
   const creditsUsed = subscription?.textGenerationsUsed ?? 0;
@@ -31,7 +31,7 @@ export function SubscriptionPanel() {
           </p>
           {isSubscribed ? (
             <p className="mt-3 rounded-lg bg-cloud p-3 text-sm font-black text-ink">
-              Text credits left: {creditsLeft} / {creditsLimit}
+              AI content packs left: {creditsLeft} / {creditsLimit}
             </p>
           ) : null}
         </div>
@@ -45,16 +45,7 @@ export function SubscriptionPanel() {
               Manage billing
             </Link>
           ) : (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button onClick={() => activateSubscription("monthly")} variant="secondary">
-                <CreditCard className="h-4 w-4" />
-                Monthly
-              </Button>
-              <Button onClick={() => activateSubscription("yearly")}>
-                <CreditCard className="h-4 w-4" />
-                Yearly
-              </Button>
-            </div>
+            <ButtonLink href="/checkout">Choose a plan</ButtonLink>
           )}
         </div>
       </div>

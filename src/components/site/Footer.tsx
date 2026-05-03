@@ -7,8 +7,9 @@ export function Footer() {
         <p>ContentKing AI prototype. Mock SaaS flows today, real integrations tomorrow.</p>
         <div className="flex gap-4 font-semibold text-ink/70">
           <Link href="/pricing">Pricing</Link>
+          <Link href="/demo">Demo</Link>
+          <Link href="/checkout">Checkout</Link>
           <Link href="/dashboard">Dashboard</Link>
-          <Link href="/dashboard/billing">Billing</Link>
         </div>
       </div>
     </footer>

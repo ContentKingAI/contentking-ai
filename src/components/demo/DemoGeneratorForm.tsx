@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Loader2, Sparkles } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
-import { useAppState } from "@/context/AppStateProvider";
-import type { GenerationInput, GenerationRecord, Language, Tone } from "@/types/saas";
 import { OutputView } from "@/components/dashboard/OutputView";
+import { aiService } from "@/services/aiService";
+import { demoUsageService, type DemoUsage } from "@/services/demoUsageService";
+import type { ContentPack, GenerationInput, Language, Tone } from "@/types/saas";
 
 const languages: Language[] = ["English", "Spanish", "French", "German", "Portuguese"];
 const tones: Tone[] = ["Friendly", "Professional", "Bold", "Playful", "Luxury"];
@@ -18,12 +19,22 @@ const initialInput: GenerationInput = {
   tone: "Bold"
 };
 
-export function GeneratorForm() {
-  const { isSubscribed, generateContent } = useAppState();
+const initialUsage: DemoUsage = {
+  used: 0,
+  limit: 5,
+  remaining: 5
+};
+
+export function DemoGeneratorForm() {
   const [input, setInput] = useState<GenerationInput>(initialInput);
-  const [generation, setGeneration] = useState<GenerationRecord | null>(null);
+  const [output, setOutput] = useState<ContentPack | null>(null);
+  const [usage, setUsage] = useState<DemoUsage>(initialUsage);
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    setUsage(demoUsageService.getUsage());
+  }, []);
 
   function update<Key extends keyof GenerationInput>(key: Key, value: GenerationInput[Key]) {
     setInput((current) => ({ ...current, [key]: value }));
@@ -33,17 +44,21 @@ export function GeneratorForm() {
     event.preventDefault();
     setError("");
 
-    if (!isSubscribed) {
-      setError("Choose a monthly or yearly plan to unlock generation in this prototype.");
+    try {
+      demoUsageService.assertCanGenerate();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to generate demo content.");
       return;
     }
 
     setIsGenerating(true);
     try {
-      const nextGeneration = await generateContent(input);
-      setGeneration(nextGeneration);
+      const nextOutput = await aiService.generateContent(input);
+      const nextUsage = demoUsageService.recordGeneration();
+      setOutput(nextOutput);
+      setUsage(nextUsage);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Unable to generate content.");
+      setError(caught instanceof Error ? caught.message : "Unable to generate demo content.");
     } finally {
       setIsGenerating(false);
     }
@@ -53,29 +68,15 @@ export function GeneratorForm() {
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-lg border border-ink/10 bg-white p-5 shadow-sm">
         <div>
-          <p className="text-sm font-black uppercase text-coral">Generator</p>
-          <h2 className="mt-2 text-2xl font-black text-ink">Create a weekly content pack</h2>
+          <p className="text-sm font-black uppercase text-coral">Private demo</p>
+          <h2 className="mt-2 text-2xl font-black text-ink">Create a sample content pack</h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            Create a complete short-form content pack from one focused business brief.
+            Try ContentKing AI without signup or payment. Demo content is limited to this browser.
+          </p>
+          <p className="mt-4 rounded-lg bg-cloud px-4 py-3 text-sm font-black text-ink">
+            Demo generations left: {usage.remaining} / {usage.limit}
           </p>
         </div>
-
-        {!isSubscribed ? (
-          <div className="mt-5 rounded-lg border border-honey/30 bg-honey/15 p-4">
-            <h3 className="font-black text-ink">Generation locked</h3>
-            <p className="mt-2 text-sm leading-6 text-ink/70">
-              Choose a monthly or yearly plan to test the full generation and save flow.
-            </p>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <ButtonLink href="/checkout?plan=monthly" variant="secondary">
-                Start Monthly
-              </ButtonLink>
-              <ButtonLink href="/checkout?plan=yearly">
-                Start Yearly
-              </ButtonLink>
-            </div>
-          </div>
-        ) : null}
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <label className="block">
@@ -141,23 +142,32 @@ export function GeneratorForm() {
 
           <Button className="w-full" disabled={isGenerating} type="submit">
             {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Generate weekly pack
+            Generate demo pack
           </Button>
         </form>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <ButtonLink href="/checkout?plan=monthly" variant="secondary">
+            Start Monthly &mdash; $12/month
+          </ButtonLink>
+          <ButtonLink href="/checkout?plan=yearly">
+            Start Yearly &mdash; $79/year
+          </ButtonLink>
+        </div>
       </section>
 
       <section>
-        {generation ? (
-          <OutputView output={generation.output} />
+        {output ? (
+          <OutputView output={output} />
         ) : (
           <div className="rounded-lg border border-ink/10 bg-white p-6 shadow-sm">
             <p className="text-sm font-black uppercase text-mint">Output preview</p>
-            <h2 className="mt-2 text-2xl font-black text-ink">Your generated pack appears here.</h2>
+            <h2 className="mt-2 text-2xl font-black text-ink">Your demo pack appears here.</h2>
             <p className="mt-3 text-sm leading-6 text-ink/70">
-              Once generated, the result is saved and appears on the history page.
+              The demo generates captions, reels hooks, hashtags, and a weekly calendar.
             </p>
             <div className="mt-5 grid gap-3">
-              {["5 captions", "5 reels hooks", "20 hashtags", "7 calendar days"].map((item) => (
+              {["Captions", "Reels hooks", "Hashtags", "Weekly calendar"].map((item) => (
                 <div className="rounded-lg bg-cloud p-4 text-sm font-black text-ink" key={item}>
                   {item}
                 </div>

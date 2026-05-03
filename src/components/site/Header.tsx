@@ -9,7 +9,12 @@ import { useAppState } from "@/context/AppStateProvider";
 import { cn } from "@/lib/format";
 import { billingPlans } from "@/services/billingService";
 
-const navItems = [
+const publicNavItems = [
+  { href: "/pricing", label: "Pricing" },
+  { href: "/demo", label: "Private Demo" }
+];
+
+const customerNavItems = [
   { href: "/pricing", label: "Pricing" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/history", label: "History" }
@@ -20,6 +25,7 @@ export function Header() {
   const { user, signOut, isSubscribed, subscription } = useAppState();
   const [open, setOpen] = useState(false);
   const activePlanLabel = subscription ? billingPlans[subscription.plan].title : "Plan";
+  const navItems = user && isSubscribed ? customerNavItems : publicNavItems;
 
   async function handleSignOut() {
     await signOut();
@@ -53,8 +59,9 @@ export function Header() {
             <>
               <span className="inline-flex items-center gap-2 rounded-lg bg-cloud px-3 py-2 text-sm font-semibold text-ink">
                 <Sparkles className={cn("h-4 w-4", isSubscribed ? "text-mint" : "text-honey")} />
-                {isSubscribed ? `${activePlanLabel} active` : "Demo account"}
+                {isSubscribed ? `${activePlanLabel} active` : "Plan required"}
               </span>
+              {!isSubscribed ? <ButtonLink href="/checkout">Choose plan</ButtonLink> : null}
               <Button variant="ghost" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -62,10 +69,10 @@ export function Header() {
             </>
           ) : (
             <>
-              <ButtonLink href="/login" variant="ghost">
-                Log in
+              <ButtonLink href="/demo" variant="secondary">
+                Try Private Demo
               </ButtonLink>
-              <ButtonLink href="/signup">Start free</ButtonLink>
+              <ButtonLink href="/checkout">Start Creating</ButtonLink>
             </>
           )}
         </div>
@@ -94,16 +101,19 @@ export function Header() {
               </Link>
             ))}
             {user ? (
-              <Button className="justify-start" onClick={handleSignOut} variant="ghost">
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </Button>
+              <>
+                {!isSubscribed ? <ButtonLink href="/checkout">Choose plan</ButtonLink> : null}
+                <Button className="justify-start" onClick={handleSignOut} variant="ghost">
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </Button>
+              </>
             ) : (
               <div className="grid grid-cols-2 gap-2 pt-2">
-                <ButtonLink href="/login" variant="secondary">
-                  Log in
+                <ButtonLink href="/demo" variant="secondary">
+                  Demo
                 </ButtonLink>
-                <ButtonLink href="/signup">Start free</ButtonLink>
+                <ButtonLink href="/checkout">Start</ButtonLink>
               </div>
             )}
           </div>

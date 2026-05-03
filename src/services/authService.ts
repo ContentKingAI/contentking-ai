@@ -73,7 +73,7 @@ export const authService = {
     const name = input.name.trim() || "ContentKing Creator";
 
     if (!email || !password) {
-      throw new Error("Enter an email and password to create your demo account.");
+      throw new Error("Enter an email and password to create your account.");
     }
 
     const users = readUsers();
@@ -107,7 +107,7 @@ export const authService = {
     const index = users.findIndex((item) => item.email === email);
 
     if (index < 0 || users[index].passwordToken !== passwordToken) {
-      throw new Error("No matching demo account was found.");
+      throw new Error("No matching account was found.");
     }
 
     const updatedUser = {

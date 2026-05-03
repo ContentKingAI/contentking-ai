@@ -1,20 +1,25 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { demoAccessService } from "@/services/demoAccessService";
 
-export function DemoAccessGate({ children }: { children: React.ReactNode }) {
-  const [isReady, setIsReady] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
+export default function DemoAccessPage() {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    setHasAccess(demoAccessService.hasAccess());
+    if (demoAccessService.hasAccess()) {
+      router.replace("/demo/dashboard");
+      return;
+    }
+
     setIsReady(true);
-  }, []);
+  }, [router]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,7 +29,7 @@ export function DemoAccessGate({ children }: { children: React.ReactNode }) {
 
     if (requiredCode && code.trim() === requiredCode) {
       demoAccessService.grantAccess();
-      setHasAccess(true);
+      router.push("/demo/dashboard");
       return;
     }
 
@@ -41,19 +46,15 @@ export function DemoAccessGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (hasAccess) {
-    return <>{children}</>;
-  }
-
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8">
+    <section className="bg-cloud px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-md rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-ink text-white">
           <LockKeyhole className="h-6 w-6" />
         </span>
-        <h1 className="mt-5 text-3xl font-black text-ink">Enter demo access code</h1>
+        <h1 className="mt-5 text-3xl font-black text-ink">Enter Demo Access Code</h1>
         <p className="mt-2 text-sm leading-6 text-ink/70">
-          ContentKing AI is currently private. Enter your access code to continue.
+          This private demo lets you generate a few sample content packs before choosing a paid plan.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -74,7 +75,7 @@ export function DemoAccessGate({ children }: { children: React.ReactNode }) {
           ) : null}
 
           <Button className="w-full" type="submit">
-            Unlock demo
+            Unlock private demo
           </Button>
         </form>
       </div>

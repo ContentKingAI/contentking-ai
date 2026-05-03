@@ -2,7 +2,7 @@
 
 import { Database, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DemoAccessGate } from "@/components/auth/DemoAccessGate";
+import { PaidAccessGuard } from "@/components/auth/PaidAccessGuard";
 import { Badge } from "@/components/ui/Badge";
 import { ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
@@ -15,9 +15,9 @@ import type { GenerationRecord, SubscriptionRecord, UserRecord } from "@/types/s
 
 export default function AdminPage() {
   return (
-    <DemoAccessGate>
+    <PaidAccessGuard>
       <AdminContent />
-    </DemoAccessGate>
+    </PaidAccessGuard>
   );
 }
 
@@ -59,9 +59,9 @@ function AdminContent() {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-8 text-center shadow-sm">
           <ShieldCheck className="mx-auto h-8 w-8 text-coral" />
-          <h1 className="mt-4 text-3xl font-black text-ink">Admin access needs a demo account.</h1>
-          <ButtonLink className="mt-6" href="/signup">
-            Create account
+          <h1 className="mt-4 text-3xl font-black text-ink">Admin access needs a paid account.</h1>
+          <ButtonLink className="mt-6" href="/checkout">
+            Choose a plan
           </ButtonLink>
         </div>
       </section>

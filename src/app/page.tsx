@@ -101,8 +101,8 @@ const audiences: IconCard[] = [
 ];
 
 const pricingFeatures = [
-  "300 monthly text generations",
-  "3,000 yearly text generations",
+  "300 monthly AI content packs",
+  "5,000 yearly AI content packs",
   "Captions",
   "Reels hooks",
   "Hashtags",
@@ -250,17 +250,13 @@ export default function LandingPage() {
                 ContentKing AI helps small businesses generate captions, reels hooks, hashtags, and weekly content calendars instantly.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <PurpleButton href="/signup">
-                  Start from $12/month
+                <PurpleButton href="/checkout">
+                  Start Creating
                   <ArrowRight className="h-4 w-4" />
                 </PurpleButton>
-                <OutlineButton href="/dashboard">
-                  See Demo
+                <OutlineButton href="/demo">
+                  Try Private Demo
                   <PlayCircle className="h-4 w-4" />
-                </OutlineButton>
-                <OutlineButton href="/signup">
-                  Request Demo Access
-                  <LockKeyhole className="h-4 w-4" />
                 </OutlineButton>
               </div>
               <div className="mt-7 grid gap-3 text-xs font-bold text-white/70 sm:grid-cols-3">
@@ -437,9 +433,9 @@ export default function LandingPage() {
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
               <p className="text-sm font-bold text-white/80">Monthly</p>
               <div className="mt-4 text-5xl font-black">$12<span className="text-2xl">/month</span></div>
-              <p className="mt-2 text-sm font-black text-white">300 text generations/month</p>
+              <p className="mt-2 text-sm font-black text-white">300 AI content packs/month</p>
               <p className="mt-2 text-sm text-white/70">Cancel anytime</p>
-              <OutlineButton href="/signup">
+              <OutlineButton href="/checkout?plan=monthly">
                 Start Monthly
                 <ArrowRight className="h-4 w-4" />
               </OutlineButton>
@@ -450,9 +446,9 @@ export default function LandingPage() {
               </span>
               <p className="text-sm font-bold text-white/80">Yearly</p>
               <div className="mt-4 text-5xl font-black">$79<span className="text-2xl">/year</span></div>
-              <p className="mt-2 text-sm font-black text-white">3,000 text generations/year</p>
+              <p className="mt-2 text-sm font-black text-white">5,000 AI content packs/year</p>
               <p className="mt-2 text-sm font-black text-[#8ff8df]">Save $65/year compared to monthly</p>
-              <PurpleButton href="/signup">
+              <PurpleButton href="/checkout?plan=yearly">
                 Start Yearly
                 <ArrowRight className="h-4 w-4" />
               </PurpleButton>
@@ -515,7 +511,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div>
-              <PurpleButton href="/signup">
+              <PurpleButton href="/checkout">
                 Start Creating Content Today
                 <ArrowRight className="h-4 w-4" />
               </PurpleButton>

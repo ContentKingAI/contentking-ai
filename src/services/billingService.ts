@@ -1,4 +1,4 @@
-import { addMonths, addYears, createId, readJson, writeJson } from "@/lib/storage";
+import { addMonths, addYears, createId, readJson, removeStorage, writeJson } from "@/lib/storage";
 import type {
   BillingInterval,
   BillingPlanId,
@@ -8,9 +8,22 @@ import type {
 } from "@/types/saas";
 
 const SUBSCRIPTIONS_KEY = "contentking.subscriptions";
+const SELECTED_PLAN_KEY = "selectedPlan";
+const CHECKOUT_STATUS_KEY = "subscriptionStatus";
+const CHECKOUT_LIMIT_KEY = "textGenerationLimit";
+const CHECKOUT_USED_KEY = "textGenerationsUsed";
 
 export const TEXT_CREDIT_LIMIT_REACHED =
-  "You’ve used all your text generations for this billing period. Upgrade or buy more credits.";
+  "You've used all your AI content packs for this billing period. Upgrade or buy more credits.";
+
+export interface CheckoutSelection {
+  plan: BillingPlanId;
+  subscriptionStatus: MockSubscriptionStatus;
+  price: 12 | 79;
+  billingInterval: BillingInterval;
+  textGenerationLimit: number;
+  textGenerationsUsed: number;
+}
 
 export const extraCreditAddOns = [
   {
@@ -73,7 +86,7 @@ export const billingPlans: Record<
     priceCents: 7900,
     billingInterval: "year",
     interval: "year",
-    textGenerationLimit: 3000,
+    textGenerationLimit: 5000,
     cta: "Start Yearly",
     description: "Save $65/year compared to monthly",
     stripeEnvKey: "STRIPE_YEARLY_PRICE_ID"
@@ -89,6 +102,51 @@ type StoredSubscription = Partial<SubscriptionRecord> & {
 
 function readSubscriptions() {
   return readJson<StoredSubscription[]>(SUBSCRIPTIONS_KEY, []);
+}
+
+function isBillingPlanId(value: unknown): value is BillingPlanId {
+  return value === "monthly" || value === "yearly";
+}
+
+function clampUsage(value: number, limit: number) {
+  return Math.max(0, Math.min(value, limit));
+}
+
+function readCheckoutSelection(): CheckoutSelection | null {
+  const selectedPlan = readJson<BillingPlanId | null>(SELECTED_PLAN_KEY, null);
+
+  if (!isBillingPlanId(selectedPlan)) {
+    return null;
+  }
+
+  const plan = billingPlans[selectedPlan];
+  const subscriptionStatus = readJson<MockSubscriptionStatus>(CHECKOUT_STATUS_KEY, "inactive");
+  const textGenerationsUsed = clampUsage(readJson<number>(CHECKOUT_USED_KEY, 0), plan.textGenerationLimit);
+
+  return {
+    plan: selectedPlan,
+    subscriptionStatus: subscriptionStatus === "active" ? "active" : "inactive",
+    price: plan.price,
+    billingInterval: plan.billingInterval,
+    textGenerationLimit: plan.textGenerationLimit,
+    textGenerationsUsed
+  };
+}
+
+function writeCheckoutSelection(planId: BillingPlanId) {
+  const plan = billingPlans[planId];
+  writeJson(SELECTED_PLAN_KEY, plan.id);
+  writeJson(CHECKOUT_STATUS_KEY, "active");
+  writeJson(CHECKOUT_LIMIT_KEY, plan.textGenerationLimit);
+  writeJson(CHECKOUT_USED_KEY, 0);
+  return readCheckoutSelection();
+}
+
+function clearCheckoutSelection() {
+  removeStorage(SELECTED_PLAN_KEY);
+  removeStorage(CHECKOUT_STATUS_KEY);
+  removeStorage(CHECKOUT_LIMIT_KEY);
+  removeStorage(CHECKOUT_USED_KEY);
 }
 
 function writeSubscriptions(subscriptions: SubscriptionRecord[]) {
@@ -168,7 +226,9 @@ function normalizeSubscription(subscription: StoredSubscription): SubscriptionRe
 function upsertSubscription(
   userId: string,
   subscriptionStatus: MockSubscriptionStatus,
-  planId: BillingPlanId
+  planId: BillingPlanId,
+  initialUsage = 0,
+  forceUsageReset = false
 ) {
   const subscriptions = readSubscriptions();
   const existing = subscriptions.find((item) => item.userId === userId);
@@ -176,6 +236,7 @@ function upsertSubscription(
   const plan = billingPlans[planId];
   const now = new Date();
   const shouldResetUsage =
+    forceUsageReset ||
     !normalizedExisting ||
     normalizedExisting.plan !== planId ||
     normalizedExisting.subscriptionStatus !== "active" ||
@@ -191,7 +252,9 @@ function upsertSubscription(
     billingInterval: plan.billingInterval,
     interval: plan.interval,
     textGenerationLimit: plan.textGenerationLimit,
-    textGenerationsUsed: shouldResetUsage ? 0 : normalizedExisting.textGenerationsUsed,
+    textGenerationsUsed: shouldResetUsage
+      ? clampUsage(initialUsage, plan.textGenerationLimit)
+      : normalizedExisting.textGenerationsUsed,
     stripeCustomerId: normalizedExisting?.stripeCustomerId ?? `cus_mock_${userId.slice(-8)}`,
     stripeSubscriptionId: normalizedExisting?.stripeSubscriptionId ?? `sub_mock_${userId.slice(-8)}`,
     currentPeriodStart: now.toISOString(),
@@ -240,6 +303,32 @@ function saveSubscription(subscription: SubscriptionRecord) {
 }
 
 export const billingService = {
+  getCheckoutSelection(): CheckoutSelection | null {
+    return readCheckoutSelection();
+  },
+
+  hasActiveCheckoutSelection() {
+    return readCheckoutSelection()?.subscriptionStatus === "active";
+  },
+
+  selectCheckoutPlan(planId: BillingPlanId): CheckoutSelection | null {
+    return writeCheckoutSelection(planId);
+  },
+
+  clearCheckoutSelection() {
+    clearCheckoutSelection();
+  },
+
+  async activateSelectedPlanForUser(userId: string): Promise<SubscriptionRecord> {
+    const selection = readCheckoutSelection();
+
+    if (selection?.subscriptionStatus !== "active") {
+      throw new Error("Choose a plan to create your account.");
+    }
+
+    return upsertSubscription(userId, "active", selection.plan, selection.textGenerationsUsed, true);
+  },
+
   async getSubscription(userId: string): Promise<SubscriptionRecord> {
     return getSubscriptionForUser(userId);
   },
@@ -254,6 +343,7 @@ export const billingService = {
 
   async cancelPlan(userId: string): Promise<SubscriptionRecord> {
     const currentPlan = getSubscriptionForUser(userId).plan;
+    clearCheckoutSelection();
     return upsertSubscription(userId, "inactive", currentPlan);
   },
 
@@ -261,7 +351,7 @@ export const billingService = {
     const subscription = getSubscriptionForUser(userId);
 
     if (subscription.subscriptionStatus !== "active") {
-      throw new Error("Activate a monthly or yearly plan to generate content.");
+      throw new Error("Choose a monthly or yearly plan to generate content.");
     }
 
     if (subscription.textGenerationsUsed >= subscription.textGenerationLimit) {

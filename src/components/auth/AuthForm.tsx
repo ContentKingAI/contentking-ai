@@ -11,7 +11,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const { signIn, signUp } = useAppState();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("demo@contentking.ai");
+  const [email, setEmail] = useState("creator@contentking.ai");
   const [password, setPassword] = useState("contentking");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,23 +36,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     }
   }
 
-  async function handleDemoSignup() {
-    setError("");
-    setIsSubmitting(true);
-    try {
-      await signUp({
-        name: "Demo Creator",
-        email: "demo@contentking.ai",
-        password: "contentking"
-      });
-      router.push("/dashboard");
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Something went wrong.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
     <div className="mx-auto w-full max-w-md rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
       <div className="flex items-center gap-3">
@@ -61,7 +44,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </span>
         <div>
           <h1 className="text-2xl font-black text-ink">{isSignup ? "Create account" : "Welcome back"}</h1>
-          <p className="text-sm text-ink/60">Prototype auth using local browser state.</p>
+          <p className="text-sm text-ink/60">Paid customer access using local prototype auth.</p>
         </div>
       </div>
 
@@ -106,13 +89,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         <Button className="w-full" disabled={isSubmitting} type="submit">
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {isSignup ? "Create demo account" : "Log in"}
+          {isSignup ? "Create account" : "Log in"}
         </Button>
       </form>
-
-      <Button className="mt-3 w-full" disabled={isSubmitting} onClick={handleDemoSignup} variant="secondary">
-        Use demo account
-      </Button>
 
       <p className="mt-5 text-center text-sm text-ink/60">
         {isSignup ? "Already have an account?" : "Need an account?"}{" "}

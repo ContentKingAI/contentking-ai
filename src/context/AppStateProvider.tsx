@@ -12,7 +12,6 @@ import {
 import { aiService } from "@/services/aiService";
 import { authService, type AuthCredentials, type SignupInput } from "@/services/authService";
 import { billingService } from "@/services/billingService";
-import { demoUsageService, type DemoUsage } from "@/services/demoUsageService";
 import { historyService } from "@/services/historyService";
 import type {
   BillingPlanId,
@@ -27,7 +26,6 @@ interface AppStateContextValue {
   user: UserRecord | null;
   subscription: SubscriptionRecord | null;
   generations: GenerationRecord[];
-  demoUsage: DemoUsage;
   isSubscribed: boolean;
   signUp(input: SignupInput): Promise<void>;
   signIn(input: AuthCredentials): Promise<void>;
@@ -41,12 +39,6 @@ interface AppStateContextValue {
 
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
-const initialDemoUsage: DemoUsage = {
-  used: 0,
-  limit: 5,
-  remaining: 5
-};
-
 function isActive(subscription: SubscriptionRecord | null) {
   return subscription?.subscriptionStatus === "active";
 }
@@ -56,11 +48,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserRecord | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionRecord | null>(null);
   const [generations, setGenerations] = useState<GenerationRecord[]>([]);
-  const [demoUsage, setDemoUsage] = useState<DemoUsage>(initialDemoUsage);
 
   const loadUserData = useCallback(async (currentUser: UserRecord | null) => {
-    setDemoUsage(demoUsageService.getUsage());
-
     if (!currentUser) {
       setSubscription(null);
       setGenerations([]);
@@ -93,15 +82,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       user,
       subscription,
       generations,
-      demoUsage,
       isSubscribed: isActive(subscription),
       async signUp(input) {
+        if (!billingService.hasActiveCheckoutSelection()) {
+          throw new Error("Choose a plan to create your account.");
+        }
+
         const session = await authService.signUp(input);
+        await billingService.activateSelectedPlanForUser(session.user.id);
         setUser(session.user);
         await loadUserData(session.user);
       },
       async signIn(input) {
+        if (!billingService.hasActiveCheckoutSelection()) {
+          throw new Error("Choose a plan to create your account.");
+        }
+
         const session = await authService.signIn(input);
+        await billingService.activateSelectedPlanForUser(session.user.id);
         setUser(session.user);
         await loadUserData(session.user);
       },
@@ -133,16 +131,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         }
 
         if (!isActive(subscription)) {
-          throw new Error("Activate a monthly or yearly plan to generate content.");
+          throw new Error("Choose a monthly or yearly plan to generate content.");
         }
 
-        demoUsageService.assertCanGenerate();
         const chargedSubscription = await billingService.consumeTextGeneration(user.id);
         setSubscription(chargedSubscription);
         const output = await aiService.generateContent(input);
         const generation = await historyService.saveGeneration(user.id, input, output);
-        const nextDemoUsage = demoUsageService.recordGeneration();
-        setDemoUsage(nextDemoUsage);
         setGenerations((current) => [generation, ...current]);
         return generation;
       },
@@ -156,7 +151,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       },
       refresh
     }),
-    [demoUsage, generations, isReady, loadUserData, refresh, subscription, user]
+    [generations, isReady, loadUserData, refresh, subscription, user]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

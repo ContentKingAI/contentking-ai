@@ -38,7 +38,7 @@ export default function BillingPage() {
       <div>
         <p className="text-sm font-black uppercase text-coral">Billing</p>
         <h1 className="mt-2 text-3xl font-black text-ink sm:text-4xl">Subscription management</h1>
-        <p className="mt-2 text-ink/70">Choose monthly or yearly in the mock billing flow today, then wire this to Stripe later.</p>
+        <p className="mt-2 text-ink/70">Manage monthly or yearly in the mock billing flow today, then wire this to Stripe later.</p>
       </div>
 
       <section className="rounded-lg border border-ink/10 bg-white p-6 shadow-sm">
@@ -51,7 +51,7 @@ export default function BillingPage() {
               {isSubscribed ? activePlan.name : "Choose a ContentKing AI plan"}
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
-              The selected plan and text credit usage are stored in the existing mock subscription state.
+              The selected plan and content pack usage are stored in the existing mock subscription state.
             </p>
           </div>
           <div className="rounded-lg bg-cloud p-4 text-right">
@@ -82,9 +82,9 @@ export default function BillingPage() {
           <div className="mt-6 rounded-lg border border-ink/10 bg-cloud p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-black text-ink">Text generation credits</p>
+                <p className="text-sm font-black text-ink">AI content pack credits</p>
                 <p className="mt-1 text-sm text-ink/70">
-                  Text credits left: {creditsLeft} / {creditsLimit}
+                  AI content packs left: {creditsLeft} / {creditsLimit}
                 </p>
               </div>
               <p className="text-sm font-semibold text-ink/60">
@@ -130,7 +130,7 @@ export default function BillingPage() {
                   {plan.description}
                 </p>
                 <p className="mt-2 text-sm font-semibold text-ink/70">
-                  {plan.textGenerationLimit.toLocaleString()} text generations per {plan.billingInterval}
+                  {plan.textGenerationLimit.toLocaleString()} AI content packs per {plan.billingInterval}
                 </p>
                 <Button
                   className="mt-5 w-full"
@@ -148,12 +148,12 @@ export default function BillingPage() {
 
         <section className="mt-6 rounded-lg border border-ink/10 bg-white p-5">
           <p className="text-sm font-black uppercase text-coral">Future add-ons</p>
-          <h3 className="mt-2 text-xl font-black text-ink">Extra text generation credits</h3>
+          <h3 className="mt-2 text-xl font-black text-ink">Extra AI content pack credits</h3>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
             {extraCreditAddOns.map((addOn) => (
               <article className="rounded-lg bg-cloud p-4" key={addOn.id}>
                 <p className="text-2xl font-black text-ink">{addOn.credits.toLocaleString()}</p>
-                <p className="text-sm font-semibold text-ink/60">extra text generations</p>
+                <p className="text-sm font-semibold text-ink/60">extra AI content packs</p>
                 <p className="mt-3 text-lg font-black text-ink">${addOn.price}</p>
                 <p className="mt-1 text-xs font-bold text-ink/50">{addOn.stripeEnvKey}</p>
               </article>
@@ -169,7 +169,7 @@ export default function BillingPage() {
                 Open customer portal
               </Button>
               <Button onClick={cancelSubscription} variant="danger">
-                Cancel demo plan
+                Cancel plan
               </Button>
             </>
           ) : null}
