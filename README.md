@@ -75,6 +75,8 @@ Use recurring Stripe Price IDs that start with `price_` for `STRIPE_MONTHLY_PRIC
 
 If `STRIPE_SECRET_KEY` is missing, signup/login falls back to the local mock subscription flow so the prototype keeps working without real payment credentials.
 
+The app also includes the current Monthly and Yearly Stripe Price IDs as non-secret fallback values, so Checkout can still work if Vercel has not picked up the price ID variables yet. Keep the Vercel variables set anyway so price changes can be made without code changes.
+
 For Vercel, add these Environment Variables in the project settings:
 
 ```bash

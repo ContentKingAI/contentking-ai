@@ -4,12 +4,18 @@ import type { BillingPlanId } from "@/types/saas";
 
 export const runtime = "nodejs";
 
+const fallbackPriceIds: Record<BillingPlanId, string> = {
+  monthly: "price_1TT6SwKu4U4rqbAmPM6um33P",
+  yearly: "price_1TT6TaKu4U4rqbAmGaZtbeDQ"
+};
+
 function isBillingPlanId(value: unknown): value is BillingPlanId {
   return value === "monthly" || value === "yearly";
 }
 
 function priceIdForPlan(plan: BillingPlanId) {
-  return plan === "monthly" ? process.env.STRIPE_MONTHLY_PRICE_ID : process.env.STRIPE_YEARLY_PRICE_ID;
+  const envPriceId = plan === "monthly" ? process.env.STRIPE_MONTHLY_PRICE_ID : process.env.STRIPE_YEARLY_PRICE_ID;
+  return envPriceId?.trim() || fallbackPriceIds[plan];
 }
 
 function priceEnvKeyForPlan(plan: BillingPlanId) {
@@ -49,10 +55,6 @@ export async function POST(request: Request) {
 
   const priceId = priceIdForPlan(plan);
   const priceEnvKey = priceEnvKeyForPlan(plan);
-
-  if (!priceId) {
-    return NextResponse.json({ error: `Missing Stripe price ID for ${plan} plan.` }, { status: 500 });
-  }
 
   if (!priceId.startsWith("price_")) {
     return NextResponse.json(
