@@ -57,6 +57,23 @@ The app is intentionally routed through replaceable services:
 
 Today those services use localStorage and deterministic mock content. Later they can be replaced with Supabase Auth, Supabase tables, Stripe Checkout/Portal, and the OpenAI API without rewriting the UI.
 
+## Stripe checkout
+
+The checkout buttons call `POST /api/stripe/checkout` with `{ "plan": "monthly" }` or `{ "plan": "yearly" }`.
+
+Set these variables to use real Stripe Checkout subscriptions:
+
+```bash
+STRIPE_SECRET_KEY=
+STRIPE_MONTHLY_PRICE_ID=
+STRIPE_YEARLY_PRICE_ID=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Use recurring Stripe Price IDs that start with `price_` for `STRIPE_MONTHLY_PRICE_ID` and `STRIPE_YEARLY_PRICE_ID`. Product IDs that start with `prod_` cannot be used as Checkout line item prices.
+
+If `STRIPE_SECRET_KEY` is missing, `/checkout` falls back to the local mock subscription flow so the prototype keeps working without real payment credentials.
+
 ## Local setup
 
 Install dependencies once a package manager is available:

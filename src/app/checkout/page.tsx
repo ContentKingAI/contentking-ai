@@ -21,14 +21,21 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { activateSubscription, user } = useAppState();
   const [preferredPlan, setPreferredPlan] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [error, setError] = useState("");
   const [isChoosing, setIsChoosing] = useState<BillingPlanId | null>(null);
 
   useEffect(() => {
-    setPreferredPlan(new URLSearchParams(window.location.search).get("plan"));
+    const params = new URLSearchParams(window.location.search);
+    setPreferredPlan(params.get("plan"));
+
+    if (params.get("canceled") === "true") {
+      billingService.clearCheckoutSelection();
+      setStatusMessage("Checkout was canceled. Choose a plan when you are ready.");
+    }
   }, []);
 
-  async function handleChoosePlan(planId: BillingPlanId) {
-    setIsChoosing(planId);
+  async function runMockCheckout(planId: BillingPlanId) {
     billingService.selectCheckoutPlan(planId);
 
     if (user) {
@@ -40,6 +47,39 @@ export default function CheckoutPage() {
     router.push("/signup");
   }
 
+  async function handleChoosePlan(planId: BillingPlanId) {
+    setIsChoosing(planId);
+    setError("");
+    setStatusMessage("");
+
+    try {
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ plan: planId })
+      });
+      const data = (await response.json()) as { url?: string; error?: string; code?: string };
+
+      if (response.ok && data.url) {
+        billingService.selectCheckoutPlan(planId);
+        window.location.assign(data.url);
+        return;
+      }
+
+      if (data.code === "stripe_not_configured") {
+        await runMockCheckout(planId);
+        return;
+      }
+
+      throw new Error(data.error ?? "Unable to start checkout.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to start checkout.");
+      setIsChoosing(null);
+    }
+  }
+
   return (
     <section className="bg-cloud px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
@@ -47,9 +87,21 @@ export default function CheckoutPage() {
           <Badge tone="success">Paid customer checkout</Badge>
           <h1 className="mt-5 text-4xl font-black text-ink sm:text-5xl">Choose your ContentKing AI plan</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-ink/70">
-            This prototype stores a mock active subscription now. Later this page can be replaced with Stripe Checkout.
+            Start with Stripe Checkout when configured, or use the local mock fallback while keys are missing.
           </p>
         </div>
+
+        {statusMessage ? (
+          <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-honey/30 bg-honey/15 p-4 text-sm font-semibold text-ink">
+            {statusMessage}
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-coral/25 bg-coral/10 p-4 text-sm font-semibold text-ink">
+            {error}
+          </div>
+        ) : null}
 
         <div className="mt-10 grid gap-5 lg:grid-cols-2">
           {planOrder.map((planId) => {
@@ -115,7 +167,7 @@ export default function CheckoutPage() {
         </div>
 
         <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-6 text-ink/60">
-          Security note: payments are mocked with localStorage in this prototype. No real Stripe checkout is created yet.
+          Security note: `STRIPE_SECRET_KEY` is only read in the server route. If it is missing, this prototype falls back to the local mock checkout flow.
         </p>
       </div>
     </section>
