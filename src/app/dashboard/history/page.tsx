@@ -20,8 +20,8 @@ export default function HistoryPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-black uppercase text-coral">Saved results</p>
-          <h1 className="mt-2 text-3xl font-black text-ink sm:text-4xl">Generation history</h1>
-          <p className="mt-2 text-ink/70">Saved locally now, ready for a future Supabase generations table.</p>
+          <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">Generation history</h1>
+          <p className="mt-2 text-white/70">Saved locally now, ready for a future Supabase generations table.</p>
         </div>
         <ButtonLink href="/dashboard">Create new pack</ButtonLink>
       </div>

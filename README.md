@@ -4,14 +4,15 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 
 ## What is included
 
-- Landing page, monthly/yearly pricing page, and paid checkout page
+- Landing page, public templates page, monthly/yearly pricing page, and paid checkout page
 - Private demo access page and separate demo dashboard
 - Paid customer signup/login/logout
 - Dashboard with subscription status, generator form, recent results, and billing link
+- Public template gallery plus paid dashboard templates that pre-fill the generator form
 - Client-side demo generation for captions, reels hooks, hashtags, and a 7-day calendar
 - Saved generation history in localStorage
 - Billing page with mock monthly/yearly subscription management and content pack credit tracking
-- Monthly plan: $12/month with 500 AI content packs/month
+- Monthly plan: $12/month with 300 AI content packs/month
 - Yearly plan: $79/year with 5,000 AI content packs/year
 - Admin-ready modules for future users, subscriptions, generations, and templates
 
@@ -35,7 +36,7 @@ NEXT_PUBLIC_DEMO_ACCESS_CODE=KING2026
 
 ### Paid customer access
 
-- Public routes: `/` and `/pricing`
+- Public routes: `/`, `/pricing`, and `/templates`
 - Plan selection routes: `/pricing` and `/checkout`
 - Choosing a plan stores selected plan state in localStorage:
   - `selectedPlan`
@@ -55,6 +56,7 @@ The app is intentionally routed through replaceable services:
 - `src/services/aiService.ts`
 - `src/services/billingService.ts`
 - `src/services/historyService.ts`
+- `src/services/templateService.ts`
 
 Today those services use localStorage and deterministic mock content. Later they can be replaced with Supabase Auth, Supabase tables, Stripe Checkout/Portal, and the OpenAI API without rewriting the UI.
 

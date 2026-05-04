@@ -37,8 +37,8 @@ export default function BillingPage() {
     <div className="space-y-6">
       <div>
         <p className="text-sm font-black uppercase text-coral">Billing</p>
-        <h1 className="mt-2 text-3xl font-black text-ink sm:text-4xl">Subscription management</h1>
-        <p className="mt-2 text-ink/70">Manage monthly or yearly in the mock billing flow today, then wire this to Stripe later.</p>
+        <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">Subscription management</h1>
+        <p className="mt-2 text-white/70">Manage monthly or yearly in the mock billing flow today, then wire this to Stripe later.</p>
       </div>
 
       <section className="rounded-lg border border-ink/10 bg-white p-6 shadow-sm">

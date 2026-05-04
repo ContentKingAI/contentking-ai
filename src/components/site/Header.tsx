@@ -11,12 +11,14 @@ import { billingPlans } from "@/services/billingService";
 
 const publicNavItems = [
   { href: "/pricing", label: "Pricing" },
+  { href: "/templates", label: "Templates" },
   { href: "/demo", label: "Private Demo" }
 ];
 
 const customerNavItems = [
   { href: "/pricing", label: "Pricing" },
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/templates", label: "Templates" },
   { href: "/dashboard/history", label: "History" }
 ];
 
@@ -33,10 +35,10 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ink/10 bg-white/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#050b17]/92 text-white backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link className="flex items-center gap-2 font-black tracking-tight text-ink" href="/">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-white">
+        <Link className="flex items-center gap-2 font-black tracking-tight text-white" href="/">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-ink">
             <Crown aria-hidden className="h-5 w-5" />
           </span>
           ContentKing AI
@@ -45,7 +47,7 @@ export function Header() {
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => (
             <Link
-              className="rounded-lg px-3 py-2 text-sm font-semibold text-ink/70 hover:bg-ink/5 hover:text-ink"
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white"
               href={item.href}
               key={item.href}
             >
@@ -62,7 +64,7 @@ export function Header() {
                 {isSubscribed ? `${activePlanLabel} active` : "Plan required"}
               </span>
               {!isSubscribed ? <ButtonLink href="/pricing">Choose plan</ButtonLink> : null}
-              <Button variant="ghost" onClick={handleSignOut}>
+              <Button className="text-white hover:bg-white/10" variant="ghost" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
                 Sign out
               </Button>
@@ -88,11 +90,11 @@ export function Header() {
       </div>
 
       {open ? (
-        <div className="border-t border-ink/10 bg-white px-4 py-3 md:hidden">
+        <div className="border-t border-white/10 bg-[#050b17] px-4 py-3 md:hidden">
           <div className="flex flex-col gap-2">
             {navItems.map((item) => (
               <Link
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-ink/70 hover:bg-ink/5"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-white/70 hover:bg-white/10"
                 href={item.href}
                 key={item.href}
                 onClick={() => setOpen(false)}
@@ -103,7 +105,7 @@ export function Header() {
             {user ? (
               <>
                 {!isSubscribed ? <ButtonLink href="/pricing">Choose plan</ButtonLink> : null}
-                <Button className="justify-start" onClick={handleSignOut} variant="ghost">
+                <Button className="justify-start text-white hover:bg-white/10" onClick={handleSignOut} variant="ghost">
                   <LogOut className="h-4 w-4" />
                   Sign out
                 </Button>

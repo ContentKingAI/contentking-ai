@@ -28,10 +28,13 @@ export type Language =
   | "Portuguese";
 
 export type TemplateCategory =
+  | "social_media_posts"
+  | "reels_tiktok"
+  | "sales_offers"
+  | "weekly_content_plans"
+  | "business_niches"
   | "captions"
-  | "reels"
-  | "hashtags"
-  | "calendar";
+  | "hashtags";
 
 export interface UserRecord {
   id: string;
@@ -103,7 +106,10 @@ export interface TemplateRecord {
   name: string;
   description: string;
   category: TemplateCategory;
+  bestFor: string;
+  icon: string;
   prompt: string;
+  input: GenerationInput;
   fields: Array<keyof GenerationInput>;
   isActive: boolean;
   createdAt: string;

@@ -38,7 +38,7 @@ export default function DemoAccessPage() {
 
   if (!isReady) {
     return (
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-md rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
           <div className="h-3 w-48 animate-pulse rounded-full bg-cloud" />
         </div>
@@ -47,7 +47,7 @@ export default function DemoAccessPage() {
   }
 
   return (
-    <section className="bg-cloud px-4 py-16 sm:px-6 lg:px-8">
+    <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-md rounded-lg border border-ink/10 bg-white p-6 shadow-soft">
         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-ink text-white">
           <LockKeyhole className="h-6 w-6" />

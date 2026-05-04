@@ -44,12 +44,12 @@ export default function PricingPage() {
   }
 
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8">
+    <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
           <Badge tone="success">Flexible prototype pricing</Badge>
-          <h1 className="mt-5 text-4xl font-black text-ink sm:text-5xl">Pricing for ContentKing AI</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-ink/70">
+          <h1 className="mt-5 text-4xl font-black text-white sm:text-5xl">Pricing for ContentKing AI</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
             Choose a plan first, create your account, then finish securely through Stripe Checkout.
           </p>
         </div>

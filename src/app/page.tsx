@@ -101,7 +101,7 @@ const audiences: IconCard[] = [
 ];
 
 const pricingFeatures = [
-  "500 monthly AI content packs",
+  "300 monthly AI content packs",
   "5,000 yearly AI content packs",
   "Captions",
   "Reels hooks",
@@ -273,11 +273,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-[#f8faff] px-4 py-5 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-5 sm:px-6 lg:px-8">
         <div className="absolute right-14 top-24 h-28 w-28 opacity-40 [background-image:radial-gradient(#6d3cff_1px,transparent_1px)] [background-size:14px_14px]" />
         <div className="mx-auto max-w-7xl">
           <div className="py-10 text-center">
-            <h2 className="text-3xl font-black leading-tight text-[#07111f] sm:text-4xl">
+            <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl">
               Posting every day <br className="hidden sm:block" />
               should not feel like a <span className="text-[#7a3cff]">full-time job.</span>
             </h2>
@@ -317,7 +317,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-[#f8faff] px-4 py-5 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-6 py-10 md:grid-cols-[1fr_auto_1fr] md:items-center">
             <article className="mx-auto w-full max-w-sm rounded-lg border border-[#eadbe4] bg-white p-6 shadow-lg shadow-[#141b34]/5">
@@ -357,10 +357,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-white px-4 py-5 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="py-10">
-            <h2 className="text-center text-3xl font-black text-[#07111f]">
+            <h2 className="text-center text-3xl font-black text-white">
               See what it <span className="text-[#6d3cff]">creates.</span>
             </h2>
             <div className="mx-auto mt-8 grid max-w-5xl gap-4 md:grid-cols-4">
@@ -408,10 +408,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-[#f8faff] px-4 py-5 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="py-10">
-            <h2 className="text-center text-3xl font-black text-[#07111f]">
+            <h2 className="text-center text-3xl font-black text-white">
               Built for busy <span className="text-[#6d3cff]">business owners.</span>
             </h2>
             <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
@@ -433,7 +433,7 @@ export default function LandingPage() {
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
               <p className="text-sm font-bold text-white/80">Monthly</p>
               <div className="mt-4 text-5xl font-black">$12<span className="text-2xl">/month</span></div>
-              <p className="mt-2 text-sm font-black text-white">500 AI content packs/month</p>
+              <p className="mt-2 text-sm font-black text-white">300 AI content packs/month</p>
               <p className="mt-2 text-sm text-white/70">Cancel anytime</p>
               <OutlineButton href="/pricing?plan=monthly">
                 Start Monthly
@@ -467,7 +467,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-white px-4 py-5 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="grid gap-8 py-10 md:grid-cols-[1fr_1.1fr] md:items-center">
             <div className="grid gap-6 sm:grid-cols-[130px_1fr] sm:items-center">
@@ -475,8 +475,8 @@ export default function LandingPage() {
                 <Check className="h-16 w-16" />
               </div>
               <div>
-                <h2 className="text-3xl font-black text-[#07111f]">Try it risk-free.</h2>
-                <p className="mt-3 max-w-lg leading-7 text-[#1f2b40]">
+                <h2 className="text-3xl font-black text-white">Try it risk-free.</h2>
+                <p className="mt-3 max-w-lg leading-7 text-white/70">
                   If ContentKing AI does not save you time creating content, cancel anytime before your renewal. No questions asked.
                 </p>
               </div>

@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { LayoutTemplate, Loader2, Sparkles } from "lucide-react";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
 import type { GenerationInput, GenerationRecord, Language, Tone } from "@/types/saas";
 import { OutputView } from "@/components/dashboard/OutputView";
+import { templateService } from "@/services/templateService";
 
 const languages: Language[] = ["English", "Spanish", "French", "German", "Portuguese"];
 const tones: Tone[] = ["Friendly", "Professional", "Bold", "Playful", "Luxury"];
@@ -22,8 +23,21 @@ export function GeneratorForm() {
   const { isSubscribed, generateContent } = useAppState();
   const [input, setInput] = useState<GenerationInput>(initialInput);
   const [generation, setGeneration] = useState<GenerationRecord | null>(null);
+  const [selectedTemplateName, setSelectedTemplateName] = useState("");
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    const selectedTemplate = templateService.getSelectedTemplate();
+
+    if (!selectedTemplate) {
+      return;
+    }
+
+    setInput(selectedTemplate.input);
+    setSelectedTemplateName(selectedTemplate.name);
+    templateService.clearSelectedTemplate();
+  }, []);
 
   function update<Key extends keyof GenerationInput>(key: Key, value: GenerationInput[Key]) {
     setInput((current) => ({ ...current, [key]: value }));
@@ -59,6 +73,21 @@ export function GeneratorForm() {
             Create a complete short-form content pack from one focused business brief.
           </p>
         </div>
+
+        {selectedTemplateName ? (
+          <div className="mt-5 flex items-start gap-3 rounded-lg border border-mint/25 bg-mint/10 p-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-ink">
+              <LayoutTemplate className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-xs font-black uppercase text-ink/50">Template applied</p>
+              <h3 className="mt-1 font-black text-ink">{selectedTemplateName}</h3>
+              <p className="mt-1 text-sm leading-6 text-ink/65">
+                The form has been pre-filled from this template. Adjust the details before generating.
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         {!isSubscribed ? (
           <div className="mt-5 rounded-lg border border-honey/30 bg-honey/15 p-4">

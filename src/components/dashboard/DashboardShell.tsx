@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BarChart3, CreditCard, History, Home, ShieldCheck } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { BarChart3, CreditCard, History, Home, LayoutTemplate, ShieldCheck, WandSparkles } from "lucide-react";
 import { ButtonLink } from "@/components/ui/Button";
 import { useAppState } from "@/context/AppStateProvider";
 import { cn } from "@/lib/format";
@@ -9,18 +10,21 @@ import { billingPlans } from "@/services/billingService";
 
 const dashboardNav = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/dashboard/generator", label: "Generator", icon: WandSparkles },
+  { href: "/dashboard/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/dashboard/history", label: "History", icon: History },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
   { href: "/admin", label: "Admin", icon: ShieldCheck }
 ];
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const { user, isReady, generations, isSubscribed, subscription } = useAppState();
   const activePlanLabel = subscription ? billingPlans[subscription.plan].title : "Locked";
 
   if (!isReady) {
     return (
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl rounded-lg border border-ink/10 bg-white p-8 shadow-sm">
           <p className="text-sm font-black uppercase text-mint">Loading workspace</p>
           <div className="mt-4 h-3 w-64 animate-pulse rounded-full bg-cloud" />
@@ -31,7 +35,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (!user) {
     return (
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-8 text-center shadow-soft">
           <p className="text-sm font-black uppercase text-coral">Sign in required</p>
           <h1 className="mt-3 text-3xl font-black text-ink">Open your ContentKing AI workspace.</h1>
@@ -50,7 +54,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <section className="bg-cloud px-4 py-8 sm:px-6 lg:px-8">
+    <section className="brand-page px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[250px_1fr]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-lg border border-ink/10 bg-white p-4 shadow-sm">
@@ -75,7 +79,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 <Link
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-bold text-ink/70 hover:bg-cloud hover:text-ink",
-                    item.href === "/dashboard" && "font-black"
+                    pathname === item.href && "bg-cloud font-black text-ink"
                   )}
                   href={item.href}
                   key={item.href}

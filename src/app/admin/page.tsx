@@ -48,7 +48,7 @@ function AdminContent() {
 
   if (!isReady) {
     return (
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl rounded-lg bg-white p-8 shadow-sm">Loading admin...</div>
       </section>
     );
@@ -56,7 +56,7 @@ function AdminContent() {
 
   if (!user) {
     return (
-      <section className="px-4 py-16 sm:px-6 lg:px-8">
+      <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl rounded-lg border border-ink/10 bg-white p-8 text-center shadow-sm">
           <ShieldCheck className="mx-auto h-8 w-8 text-coral" />
           <h1 className="mt-4 text-3xl font-black text-ink">Admin access needs a paid account.</h1>
@@ -76,13 +76,13 @@ function AdminContent() {
   };
 
   return (
-    <section className="bg-cloud px-4 py-10 sm:px-6 lg:px-8">
+    <section className="brand-page px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Badge tone={user.role === "admin" ? "success" : "neutral"}>{user.role}</Badge>
-            <h1 className="mt-3 text-3xl font-black text-ink sm:text-4xl">Admin-ready structure</h1>
-            <p className="mt-2 max-w-2xl text-ink/70">
+            <h1 className="mt-3 text-3xl font-black text-white sm:text-4xl">Admin-ready structure</h1>
+            <p className="mt-2 max-w-2xl text-white/70">
               Resource modules are already separated for users, subscriptions, generations, and templates.
             </p>
           </div>

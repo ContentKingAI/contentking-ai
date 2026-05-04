@@ -13,7 +13,7 @@ import type { BillingPlanId } from "@/types/saas";
 const planOrder: BillingPlanId[] = ["monthly", "yearly"];
 
 const planFeatures: Record<BillingPlanId, string[]> = {
-  monthly: ["500 AI content packs/month", "Cancel anytime", "Secure Stripe payment after signup"],
+  monthly: ["300 AI content packs/month", "Cancel anytime", "Secure Stripe payment after signup"],
   yearly: ["5,000 AI content packs/year", "Save $65/year", "Best value for consistent posting"]
 };
 
@@ -41,12 +41,12 @@ export default function CheckoutPage() {
   }
 
   return (
-    <section className="bg-cloud px-4 py-16 sm:px-6 lg:px-8">
+    <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
           <Badge tone="success">Paid customer checkout</Badge>
-          <h1 className="mt-5 text-4xl font-black text-ink sm:text-5xl">Choose your ContentKing AI plan</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-ink/70">
+          <h1 className="mt-5 text-4xl font-black text-white sm:text-5xl">Choose your ContentKing AI plan</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-white/70">
             Pick monthly or yearly, create your account, then finish payment through Stripe Checkout.
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
           })}
         </div>
 
-        <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-6 text-ink/60">
+        <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-6 text-white/60">
           Security note: payment starts after signup or login. `STRIPE_SECRET_KEY` is only read by the server route.
         </p>
       </div>

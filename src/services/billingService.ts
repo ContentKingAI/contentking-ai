@@ -72,7 +72,7 @@ export const billingPlans: Record<
     priceCents: 1200,
     billingInterval: "month",
     interval: "month",
-    textGenerationLimit: 500,
+    textGenerationLimit: 300,
     cta: "Start Monthly",
     description: "Cancel anytime",
     stripeEnvKey: "STRIPE_MONTHLY_PRICE_ID"
