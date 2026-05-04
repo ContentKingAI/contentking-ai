@@ -4,14 +4,15 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 
 ## What is included
 
-- Landing page, public templates page, monthly/yearly pricing page, and paid checkout page
+- Landing page, public templates page, Free/Monthly/Yearly pricing page, and checkout page
 - Private demo access page and separate demo dashboard
-- Paid customer signup/login/logout
+- Free and paid customer signup/login/logout
 - Dashboard with subscription status, generator form, recent results, and billing link
 - Public template gallery plus paid dashboard templates that pre-fill the generator form
 - Client-side demo generation for captions, reels hooks, hashtags, and a 7-day calendar
 - Saved generation history in localStorage
-- Billing page with mock monthly/yearly subscription management and content pack credit tracking
+- Billing page with mock Free/Monthly/Yearly subscription management and content pack credit tracking
+- Free plan: $0/month with 10 AI content packs/month
 - Monthly plan: $12/month with 300 AI content packs/month
 - Yearly plan: $79/year with 5,000 AI content packs/year
 - Admin-ready modules for future users, subscriptions, generations, and templates
@@ -34,18 +35,33 @@ Set the demo code with:
 NEXT_PUBLIC_DEMO_ACCESS_CODE=KING2026
 ```
 
+### Free plan access
+
+- Public route: `/pricing`
+- Choosing Free sends the user to `/signup?plan=free`
+- Free signup/login does not require Stripe Checkout
+- Free plan state is stored in localStorage:
+  - `selectedPlan=free`
+  - `subscriptionStatus=free`
+  - `textGenerationLimit=10`
+  - `textGenerationsUsed=0`
+  - `billingInterval=free`
+- Free users can access `/dashboard`
+- Free users are limited to 10 content packs per month
+- Premium templates show an upgrade prompt for Free users
+
 ### Paid customer access
 
 - Public routes: `/`, `/pricing`, and `/templates`
 - Plan selection routes: `/pricing` and `/checkout`
-- Choosing a plan stores selected plan state in localStorage:
+- Choosing Monthly or Yearly stores selected plan state in localStorage:
   - `selectedPlan`
   - `subscriptionStatus`
   - `textGenerationLimit`
   - `textGenerationsUsed`
-- Signup and login display the selected plan and then start Stripe Checkout
+- Signup and login display the selected plan and then start Stripe Checkout for paid plans
 - Successful Stripe payment returns to `/dashboard?payment=success`
-- `/dashboard`, `/dashboard/history`, `/dashboard/billing`, and `/admin` require a signed-in user with an active mock subscription
+- `/dashboard`, `/dashboard/history`, `/dashboard/billing`, and `/admin` require a signed-in user with Free or active paid access
 - If a user visits paid dashboard routes without payment/subscription success, they are sent to `/pricing`
 
 ## Service layer

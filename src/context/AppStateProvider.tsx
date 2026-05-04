@@ -40,7 +40,7 @@ interface AppStateContextValue {
 const AppStateContext = createContext<AppStateContextValue | undefined>(undefined);
 
 function isActive(subscription: SubscriptionRecord | null) {
-  return subscription?.subscriptionStatus === "active";
+  return subscription?.subscriptionStatus === "active" || subscription?.subscriptionStatus === "free";
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
@@ -131,7 +131,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         }
 
         if (!isActive(subscription)) {
-          throw new Error("Choose a monthly or yearly plan to generate content.");
+          throw new Error("Choose a plan to generate content.");
         }
 
         const chargedSubscription = await billingService.consumeTextGeneration(user.id);

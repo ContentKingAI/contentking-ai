@@ -20,7 +20,7 @@ const initialInput: GenerationInput = {
 };
 
 export function GeneratorForm() {
-  const { isSubscribed, generateContent } = useAppState();
+  const { isSubscribed, generateContent, subscription } = useAppState();
   const [input, setInput] = useState<GenerationInput>(initialInput);
   const [generation, setGeneration] = useState<GenerationRecord | null>(null);
   const [selectedTemplateName, setSelectedTemplateName] = useState("");
@@ -34,10 +34,16 @@ export function GeneratorForm() {
       return;
     }
 
+    if (subscription?.plan === "free" && selectedTemplate.access === "premium") {
+      setError("Upgrade to unlock premium templates.");
+      templateService.clearSelectedTemplate();
+      return;
+    }
+
     setInput(selectedTemplate.input);
     setSelectedTemplateName(selectedTemplate.name);
     templateService.clearSelectedTemplate();
-  }, []);
+  }, [subscription?.plan]);
 
   function update<Key extends keyof GenerationInput>(key: Key, value: GenerationInput[Key]) {
     setInput((current) => ({ ...current, [key]: value }));
@@ -48,7 +54,7 @@ export function GeneratorForm() {
     setError("");
 
     if (!isSubscribed) {
-      setError("Choose a monthly or yearly plan to unlock generation in this prototype.");
+      setError("Choose a plan to unlock generation in this prototype.");
       return;
     }
 
@@ -93,9 +99,12 @@ export function GeneratorForm() {
           <div className="mt-5 rounded-lg border border-honey/30 bg-honey/15 p-4">
             <h3 className="font-black text-ink">Generation locked</h3>
             <p className="mt-2 text-sm leading-6 text-ink/70">
-              Choose a monthly or yearly plan to test the full generation and save flow.
+              Choose Free, Monthly, or Yearly to test the generation flow.
             </p>
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <ButtonLink href="/pricing?plan=free" variant="secondary">
+                Start Free
+              </ButtonLink>
               <ButtonLink href="/pricing?plan=monthly" variant="secondary">
                 Start Monthly
               </ButtonLink>
@@ -164,7 +173,12 @@ export function GeneratorForm() {
 
           {error ? (
             <div className="rounded-lg border border-coral/25 bg-coral/10 p-3 text-sm font-semibold text-ink">
-              {error}
+              <p>{error}</p>
+              {error.includes("free content packs") || error.includes("premium templates") ? (
+                <ButtonLink className="mt-3 w-full" href="/pricing">
+                  Upgrade
+                </ButtonLink>
+              ) : null}
             </div>
           ) : null}
 

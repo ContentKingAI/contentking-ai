@@ -10,7 +10,8 @@ import { billingPlans } from "@/services/billingService";
 
 export function SubscriptionPanel() {
   const { isSubscribed, subscription } = useAppState();
-  const activePlan = subscription ? billingPlans[subscription.plan] : billingPlans.yearly;
+  const activePlan = subscription ? billingPlans[subscription.plan] : billingPlans.free;
+  const isFreePlan = activePlan.id === "free";
   const intervalLabel = activePlan.billingInterval === "year" ? "/year" : "/month";
   const creditsUsed = subscription?.textGenerationsUsed ?? 0;
   const creditsLimit = activePlan.textGenerationLimit;
@@ -25,13 +26,15 @@ export function SubscriptionPanel() {
           </Badge>
           <h2 className="mt-3 text-xl font-black text-ink">Subscription</h2>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            {isSubscribed
-              ? `Your ${activePlan.title} plan renews on ${formatDate(subscription?.currentPeriodEnd)}.`
-              : "Generation is locked until a mock monthly or yearly plan is active."}
+            {isSubscribed && isFreePlan
+              ? "Your Free Plan includes 10 monthly content pack credits."
+              : isSubscribed
+                ? `Your ${activePlan.title} plan renews on ${formatDate(subscription?.currentPeriodEnd)}.`
+                : "Generation is locked until Free, Monthly, or Yearly is active."}
           </p>
           {isSubscribed ? (
             <p className="mt-3 rounded-lg bg-cloud p-3 text-sm font-black text-ink">
-              AI content packs left: {creditsLeft} / {creditsLimit}
+              Text credits left: {creditsLeft} / {creditsLimit}
             </p>
           ) : null}
         </div>

@@ -12,7 +12,7 @@ import { billingPlans, billingService } from "@/services/billingService";
 import type { BillingPlanId } from "@/types/saas";
 
 function isBillingPlanId(value: string | null): value is BillingPlanId {
-  return value === "monthly" || value === "yearly";
+  return value === "free" || value === "monthly" || value === "yearly";
 }
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -26,6 +26,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSignup = mode === "signup";
   const activePlan = selectedPlan ? billingPlans[selectedPlan] : null;
+  const isFreePlan = selectedPlan === "free";
 
   useEffect(() => {
     const queryPlan = new URLSearchParams(window.location.search).get("plan");
@@ -83,6 +84,17 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setIsSubmitting(true);
 
     try {
+      if (selectedPlan === "free") {
+        const session = isSignup
+          ? await authService.signUp({ name, email, password })
+          : await authService.signIn({ email, password });
+
+        await billingService.activateSelectedPlanForUser(session.user.id);
+        await refresh();
+        router.push("/dashboard");
+        return;
+      }
+
       if (isSignup) {
         await authService.prepareSignUp({ name, email, password });
       } else {
@@ -105,7 +117,9 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         </span>
         <div>
           <h1 className="text-2xl font-black text-ink">{isSignup ? "Create account" : "Welcome back"}</h1>
-          <p className="text-sm text-ink/60">Paid customer access using local prototype auth.</p>
+          <p className="text-sm text-ink/60">
+            {isFreePlan ? "Free account access using local prototype auth." : "Paid customer access using local prototype auth."}
+          </p>
         </div>
       </div>
 
@@ -119,7 +133,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               <p className="text-xs font-black uppercase text-ink/60">Selected plan</p>
               <h2 className="mt-1 text-lg font-black text-ink">{activePlan.title}</h2>
               <p className="mt-1 text-sm font-semibold text-ink/70">
-                {formatMoney(activePlan.priceCents)} / {activePlan.billingInterval} -{" "}
+                {formatMoney(activePlan.priceCents)} / {activePlan.billingInterval === "free" ? "month" : activePlan.billingInterval} -{" "}
                 {activePlan.textGenerationLimit.toLocaleString()} AI content packs
               </p>
             </div>
@@ -168,7 +182,17 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
         <Button className="w-full" disabled={isSubmitting} type="submit">
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {isSubmitting ? "Opening Stripe Checkout..." : isSignup ? "Create account and pay" : "Log in and pay"}
+          {isSubmitting
+            ? isFreePlan
+              ? "Opening dashboard..."
+              : "Opening Stripe Checkout..."
+            : isFreePlan
+              ? isSignup
+                ? "Create free account"
+                : "Log in"
+              : isSignup
+                ? "Create account and pay"
+                : "Log in and pay"}
         </Button>
       </form>
 

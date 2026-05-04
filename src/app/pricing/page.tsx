@@ -11,14 +11,35 @@ import { authService } from "@/services/authService";
 import { billingPlans, billingService } from "@/services/billingService";
 import type { BillingPlanId } from "@/types/saas";
 
-const planFeatures = [
-  "Saved generation history",
-  "Mock Stripe subscription state",
-  "Ready for real Stripe Checkout later",
-  "Captions, reels hooks, hashtags, and calendars"
-];
+const planFeatures: Record<BillingPlanId, string[]> = {
+  free: [
+    "10 AI content packs/month",
+    "Basic captions",
+    "Basic reels hooks",
+    "Basic hashtags",
+    "Limited template access",
+    "No payment required"
+  ],
+  monthly: [
+    "300 AI content packs/month",
+    "Captions",
+    "Reels hooks",
+    "Hashtags",
+    "Weekly content calendars",
+    "Saved history",
+    "Full templates"
+  ],
+  yearly: [
+    "5,000 AI content packs/year",
+    "Everything in Monthly",
+    "Captions, hooks, hashtags, calendars",
+    "Saved history",
+    "Full templates",
+    "Save $65/year"
+  ]
+};
 
-const planOrder: BillingPlanId[] = ["monthly", "yearly"];
+const planOrder: BillingPlanId[] = ["free", "monthly", "yearly"];
 
 export default function PricingPage() {
   const router = useRouter();
@@ -50,7 +71,7 @@ export default function PricingPage() {
           <Badge tone="success">Flexible prototype pricing</Badge>
           <h1 className="mt-5 text-4xl font-black text-white sm:text-5xl">Pricing for ContentKing AI</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/70">
-            Choose a plan first, create your account, then finish securely through Stripe Checkout.
+            Start free without payment, or choose Monthly or Yearly to finish securely through Stripe Checkout.
           </p>
         </div>
 
@@ -60,10 +81,11 @@ export default function PricingPage() {
           </div>
         ) : null}
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+        <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {planOrder.map((planId) => {
             const plan = billingPlans[planId];
             const isYearly = planId === "yearly";
+            const isFree = planId === "free";
             const isCurrentPlan = isSubscribed && subscription?.plan === planId;
             const isPreferred = preferredPlan === planId;
 
@@ -88,25 +110,25 @@ export default function PricingPage() {
                     <p className="text-sm font-black uppercase text-coral">
                       {isYearly ? "Recommended" : plan.label}
                     </p>
-                    <h2 className="mt-1 text-2xl font-black text-ink">{plan.name}</h2>
+                    <h2 className="mt-1 text-2xl font-black text-ink">{plan.title}</h2>
                   </div>
                 </div>
 
                 <div className="mt-6 flex items-end gap-2">
                   <span className="text-6xl font-black text-ink">{formatMoney(plan.priceCents)}</span>
                   <span className="pb-2 text-sm font-semibold text-ink/60">
-                    per {plan.billingInterval}
+                    /{isFree ? "month" : plan.billingInterval}
                   </span>
                 </div>
                 <p className={`mt-3 text-sm font-black ${isYearly ? "text-mint" : "text-ink/60"}`}>
                   {plan.description}
                 </p>
                 <p className="mt-2 text-sm font-semibold text-ink/70">
-                  Includes {plan.textGenerationLimit.toLocaleString()} AI content packs per {plan.billingInterval}.
+                  Includes {plan.textGenerationLimit.toLocaleString()} AI content packs per {isFree ? "month" : plan.billingInterval}.
                 </p>
 
                 <div className="mt-6 space-y-3">
-                  {planFeatures.map((feature) => (
+                  {planFeatures[planId].map((feature) => (
                     <div className="flex items-center gap-3" key={feature}>
                       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-mint/15 text-ink">
                         <Check className="h-4 w-4" />
@@ -120,7 +142,7 @@ export default function PricingPage() {
                   className="mt-8 w-full"
                   disabled={isCurrentPlan}
                   onClick={() => handleSubscribe(planId)}
-                  variant={isYearly ? "primary" : "secondary"}
+                  variant={isYearly || isFree ? "primary" : "secondary"}
                 >
                   <Sparkles className="h-4 w-4" />
                   {isCurrentPlan ? "Current plan" : plan.cta}

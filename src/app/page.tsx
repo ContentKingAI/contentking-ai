@@ -101,6 +101,7 @@ const audiences: IconCard[] = [
 ];
 
 const pricingFeatures = [
+  "10 free AI content packs/month",
   "300 monthly AI content packs",
   "5,000 yearly AI content packs",
   "Captions",
@@ -429,7 +430,17 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-[#050b17] px-4 py-5 text-white sm:px-6 lg:px-8">
         <div className="absolute bottom-0 right-0 h-56 w-56 translate-x-20 translate-y-16 rotate-12 rounded-lg bg-[#17213b] opacity-45" />
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-5 py-10 lg:grid-cols-[0.55fr_0.55fr_1fr]">
+          <div className="grid gap-5 py-10 lg:grid-cols-[0.55fr_0.55fr_0.55fr_1fr]">
+            <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
+              <p className="text-sm font-bold text-white/80">Free</p>
+              <div className="mt-4 text-5xl font-black">$0<span className="text-2xl">/month</span></div>
+              <p className="mt-2 text-sm font-black text-white">10 AI content packs/month</p>
+              <p className="mt-2 text-sm text-white/70">No payment required</p>
+              <PurpleButton href="/signup?plan=free">
+                Start Free
+                <ArrowRight className="h-4 w-4" />
+              </PurpleButton>
+            </article>
             <article className="rounded-lg border border-white/10 bg-white/[0.04] p-7 text-center shadow-lg shadow-black/20">
               <p className="text-sm font-bold text-white/80">Monthly</p>
               <div className="mt-4 text-5xl font-black">$12<span className="text-2xl">/month</span></div>

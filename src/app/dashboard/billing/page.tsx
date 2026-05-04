@@ -9,12 +9,13 @@ import { billingPlans, billingService, extraCreditAddOns } from "@/services/bill
 import { formatDate, formatMoney } from "@/lib/format";
 import type { BillingPlanId } from "@/types/saas";
 
-const planOrder: BillingPlanId[] = ["monthly", "yearly"];
+const planOrder: BillingPlanId[] = ["free", "monthly", "yearly"];
 
 export default function BillingPage() {
   const { user, subscription, isSubscribed, activateSubscription, cancelSubscription } = useAppState();
   const [portalMessage, setPortalMessage] = useState("");
-  const activePlan = subscription ? billingPlans[subscription.plan] : billingPlans.yearly;
+  const activePlan = subscription ? billingPlans[subscription.plan] : billingPlans.free;
+  const isFreeActivePlan = activePlan.id === "free";
   const creditsUsed = subscription?.textGenerationsUsed ?? 0;
   const creditsLimit = activePlan.textGenerationLimit;
   const creditsLeft = Math.max(0, creditsLimit - creditsUsed);
@@ -38,7 +39,7 @@ export default function BillingPage() {
       <div>
         <p className="text-sm font-black uppercase text-coral">Billing</p>
         <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">Subscription management</h1>
-        <p className="mt-2 text-white/70">Manage monthly or yearly in the mock billing flow today, then wire this to Stripe later.</p>
+        <p className="mt-2 text-white/70">Manage Free, Monthly, or Yearly in the mock billing flow today, then wire this to Stripe later.</p>
       </div>
 
       <section className="rounded-lg border border-ink/10 bg-white p-6 shadow-sm">
@@ -56,7 +57,7 @@ export default function BillingPage() {
           </div>
           <div className="rounded-lg bg-cloud p-4 text-right">
             <p className="text-4xl font-black text-ink">{formatMoney(activePlan.priceCents)}</p>
-            <p className="text-sm font-bold text-ink/60">per {activePlan.billingInterval}</p>
+            <p className="text-sm font-bold text-ink/60">per {isFreeActivePlan ? "month" : activePlan.billingInterval}</p>
           </div>
         </div>
 
@@ -84,7 +85,7 @@ export default function BillingPage() {
               <div>
                 <p className="text-sm font-black text-ink">AI content pack credits</p>
                 <p className="mt-1 text-sm text-ink/70">
-                  AI content packs left: {creditsLeft} / {creditsLimit}
+                  Text credits left: {creditsLeft} / {creditsLimit}
                 </p>
               </div>
               <p className="text-sm font-semibold text-ink/60">
@@ -100,10 +101,11 @@ export default function BillingPage() {
           </div>
         ) : null}
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {planOrder.map((planId) => {
             const plan = billingPlans[planId];
             const isYearly = planId === "yearly";
+            const isFree = planId === "free";
             const isCurrentPlan = isSubscribed && subscription?.plan === planId;
 
             return (
@@ -124,13 +126,13 @@ export default function BillingPage() {
                 <h3 className="mt-2 text-xl font-black text-ink">{plan.name}</h3>
                 <div className="mt-4 flex items-end gap-2">
                   <span className="text-4xl font-black text-ink">{formatMoney(plan.priceCents)}</span>
-                  <span className="pb-1 text-sm font-semibold text-ink/60">per {plan.billingInterval}</span>
+                  <span className="pb-1 text-sm font-semibold text-ink/60">per {isFree ? "month" : plan.billingInterval}</span>
                 </div>
                 <p className={`mt-3 text-sm font-black ${isYearly ? "text-mint" : "text-ink/60"}`}>
                   {plan.description}
                 </p>
                 <p className="mt-2 text-sm font-semibold text-ink/70">
-                  {plan.textGenerationLimit.toLocaleString()} AI content packs per {plan.billingInterval}
+                  {plan.textGenerationLimit.toLocaleString()} AI content packs per {isFree ? "month" : plan.billingInterval}
                 </p>
                 <Button
                   className="mt-5 w-full"

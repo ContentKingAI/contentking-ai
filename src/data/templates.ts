@@ -61,6 +61,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Bold"
     },
     fields: commonFields,
+    access: "basic",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -80,6 +81,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Professional"
     },
     fields: commonFields,
+    access: "basic",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -99,6 +101,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Bold"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -118,6 +121,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Playful"
     },
     fields: commonFields,
+    access: "basic",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -137,6 +141,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Friendly"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -156,6 +161,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Professional"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -175,6 +181,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Friendly"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -194,6 +201,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Professional"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -213,6 +221,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Bold"
     },
     fields: commonFields,
+    access: "basic",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -232,6 +241,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Playful"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -251,6 +261,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Professional"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   },
@@ -270,6 +281,7 @@ export const contentTemplates: TemplateRecord[] = [
       tone: "Bold"
     },
     fields: commonFields,
+    access: "premium",
     isActive: true,
     createdAt: "2026-05-03T00:00:00.000Z"
   }

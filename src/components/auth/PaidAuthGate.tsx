@@ -7,7 +7,7 @@ import { billingService } from "@/services/billingService";
 import type { BillingPlanId } from "@/types/saas";
 
 function isBillingPlanId(value: string | null): value is BillingPlanId {
-  return value === "monthly" || value === "yearly";
+  return value === "free" || value === "monthly" || value === "yearly";
 }
 
 export function PaidAuthGate({ children }: { children: React.ReactNode }) {
@@ -44,7 +44,7 @@ export function PaidAuthGate({ children }: { children: React.ReactNode }) {
           </span>
           <h1 className="mt-5 text-3xl font-black text-ink">Choose a plan first</h1>
           <p className="mt-3 text-sm leading-6 text-ink/70">
-            Signup and login are part of the paid customer flow for this prototype.
+            Signup and login start after choosing Free, Monthly, or Yearly.
           </p>
           <ButtonLink className="mt-6 w-full" href="/pricing">
             Choose a plan

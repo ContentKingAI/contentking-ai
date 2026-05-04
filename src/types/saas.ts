@@ -1,17 +1,18 @@
 export type UserRole = "user" | "admin";
 
 export type SubscriptionStatus =
+  | "free"
   | "inactive"
   | "active"
   | "trialing"
   | "past_due"
   | "canceled";
 
-export type BillingPlanId = "monthly" | "yearly";
+export type BillingPlanId = "free" | "monthly" | "yearly";
 
-export type BillingInterval = "month" | "year";
+export type BillingInterval = "free" | "month" | "year";
 
-export type MockSubscriptionStatus = "active" | "inactive";
+export type MockSubscriptionStatus = "free" | "active" | "inactive";
 
 export type Tone =
   | "Friendly"
@@ -55,7 +56,7 @@ export interface SubscriptionRecord {
   plan: BillingPlanId;
   planId?: BillingPlanId;
   planName: string;
-  price: 12 | 79;
+  price: 0 | 12 | 79;
   priceCents: number;
   currency: "usd";
   billingInterval: BillingInterval;
@@ -111,6 +112,7 @@ export interface TemplateRecord {
   prompt: string;
   input: GenerationInput;
   fields: Array<keyof GenerationInput>;
+  access: "basic" | "premium";
   isActive: boolean;
   createdAt: string;
 }

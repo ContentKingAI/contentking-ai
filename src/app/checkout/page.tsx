@@ -10,9 +10,10 @@ import { authService } from "@/services/authService";
 import { billingPlans, billingService } from "@/services/billingService";
 import type { BillingPlanId } from "@/types/saas";
 
-const planOrder: BillingPlanId[] = ["monthly", "yearly"];
+const planOrder: BillingPlanId[] = ["free", "monthly", "yearly"];
 
 const planFeatures: Record<BillingPlanId, string[]> = {
+  free: ["10 AI content packs/month", "Basic captions/hooks/hashtags", "Limited templates", "No payment required"],
   monthly: ["300 AI content packs/month", "Cancel anytime", "Secure Stripe payment after signup"],
   yearly: ["5,000 AI content packs/year", "Save $65/year", "Best value for consistent posting"]
 };
@@ -44,10 +45,10 @@ export default function CheckoutPage() {
     <section className="brand-page px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <Badge tone="success">Paid customer checkout</Badge>
+          <Badge tone="success">Plan selection</Badge>
           <h1 className="mt-5 text-4xl font-black text-white sm:text-5xl">Choose your ContentKing AI plan</h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-white/70">
-            Pick monthly or yearly, create your account, then finish payment through Stripe Checkout.
+            Start free without payment, or pick monthly/yearly and finish payment through Stripe Checkout.
           </p>
         </div>
 
@@ -57,10 +58,11 @@ export default function CheckoutPage() {
           </div>
         ) : null}
 
-        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+        <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {planOrder.map((planId) => {
             const plan = billingPlans[planId];
             const isYearly = planId === "yearly";
+            const isFree = planId === "free";
             const isPreferred = preferredPlan === planId;
 
             return (
@@ -82,7 +84,7 @@ export default function CheckoutPage() {
                   </span>
                   <div>
                     <p className="text-sm font-black uppercase text-coral">
-                      {isYearly ? "Recommended" : "Flexible"}
+                      {isYearly ? "Recommended" : plan.label}
                     </p>
                     <h2 className="mt-1 text-2xl font-black text-ink">{plan.title}</h2>
                   </div>
@@ -91,7 +93,7 @@ export default function CheckoutPage() {
                 <div className="mt-6 flex items-end gap-2">
                   <span className="text-6xl font-black text-ink">{formatMoney(plan.priceCents)}</span>
                   <span className="pb-2 text-sm font-semibold text-ink/60">
-                    /{plan.billingInterval}
+                    /{isFree ? "month" : plan.billingInterval}
                   </span>
                 </div>
 
@@ -110,7 +112,7 @@ export default function CheckoutPage() {
                   className="mt-8 w-full"
                   disabled={isChoosing !== null}
                   onClick={() => handleChoosePlan(planId)}
-                  variant={isYearly ? "primary" : "secondary"}
+                  variant={isYearly || isFree ? "primary" : "secondary"}
                 >
                   <Sparkles className="h-4 w-4" />
                   {isChoosing === planId ? "Selecting..." : plan.cta}

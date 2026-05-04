@@ -12,14 +12,16 @@ const SELECTED_PLAN_KEY = "selectedPlan";
 const CHECKOUT_STATUS_KEY = "subscriptionStatus";
 const CHECKOUT_LIMIT_KEY = "textGenerationLimit";
 const CHECKOUT_USED_KEY = "textGenerationsUsed";
+const CHECKOUT_INTERVAL_KEY = "billingInterval";
 
 export const TEXT_CREDIT_LIMIT_REACHED =
   "You've used all your AI content packs for this billing period. Upgrade or buy more credits.";
+export const FREE_CREDIT_LIMIT_REACHED = "You've used all free content packs. Upgrade to continue.";
 
 export interface CheckoutSelection {
   plan: BillingPlanId;
   subscriptionStatus: MockSubscriptionStatus;
-  price: 12 | 79;
+  price: 0 | 12 | 79;
   billingInterval: BillingInterval;
   textGenerationLimit: number;
   textGenerationsUsed: number;
@@ -53,16 +55,30 @@ export const billingPlans: Record<
     name: string;
     title: string;
     label: string;
-    price: 12 | 79;
+    price: 0 | 12 | 79;
     priceCents: number;
     billingInterval: BillingInterval;
     interval: BillingInterval;
     textGenerationLimit: number;
     cta: string;
     description: string;
-    stripeEnvKey: "STRIPE_MONTHLY_PRICE_ID" | "STRIPE_YEARLY_PRICE_ID";
+    stripeEnvKey?: "STRIPE_MONTHLY_PRICE_ID" | "STRIPE_YEARLY_PRICE_ID";
   }
 > = {
+  free: {
+    id: "free",
+    name: "ContentKing AI Free",
+    title: "Free Plan",
+    label: "Try it first",
+    price: 0,
+    priceCents: 0,
+    billingInterval: "free",
+    interval: "free",
+    textGenerationLimit: 10,
+    cta: "Start Free",
+    description: "No payment required",
+    stripeEnvKey: undefined
+  },
   monthly: {
     id: "monthly",
     name: "ContentKing AI Monthly",
@@ -105,7 +121,7 @@ function readSubscriptions() {
 }
 
 function isBillingPlanId(value: unknown): value is BillingPlanId {
-  return value === "monthly" || value === "yearly";
+  return value === "free" || value === "monthly" || value === "yearly";
 }
 
 function clampUsage(value: number, limit: number) {
@@ -122,10 +138,16 @@ function readCheckoutSelection(): CheckoutSelection | null {
   const plan = billingPlans[selectedPlan];
   const subscriptionStatus = readJson<MockSubscriptionStatus>(CHECKOUT_STATUS_KEY, "inactive");
   const textGenerationsUsed = clampUsage(readJson<number>(CHECKOUT_USED_KEY, 0), plan.textGenerationLimit);
+  const normalizedStatus =
+    selectedPlan === "free" || subscriptionStatus === "free"
+      ? "free"
+      : subscriptionStatus === "active"
+        ? "active"
+        : "inactive";
 
   return {
     plan: selectedPlan,
-    subscriptionStatus: subscriptionStatus === "active" ? "active" : "inactive",
+    subscriptionStatus: normalizedStatus,
     price: plan.price,
     billingInterval: plan.billingInterval,
     textGenerationLimit: plan.textGenerationLimit,
@@ -133,12 +155,14 @@ function readCheckoutSelection(): CheckoutSelection | null {
   };
 }
 
-function writeCheckoutSelection(planId: BillingPlanId, subscriptionStatus: MockSubscriptionStatus = "inactive") {
+function writeCheckoutSelection(planId: BillingPlanId, subscriptionStatus?: MockSubscriptionStatus) {
   const plan = billingPlans[planId];
+  const nextStatus = subscriptionStatus ?? (planId === "free" ? "free" : "inactive");
   writeJson(SELECTED_PLAN_KEY, plan.id);
-  writeJson(CHECKOUT_STATUS_KEY, subscriptionStatus);
+  writeJson(CHECKOUT_STATUS_KEY, nextStatus);
   writeJson(CHECKOUT_LIMIT_KEY, plan.textGenerationLimit);
   writeJson(CHECKOUT_USED_KEY, 0);
+  writeJson(CHECKOUT_INTERVAL_KEY, plan.billingInterval);
   return readCheckoutSelection();
 }
 
@@ -147,6 +171,7 @@ function clearCheckoutSelection() {
   removeStorage(CHECKOUT_STATUS_KEY);
   removeStorage(CHECKOUT_LIMIT_KEY);
   removeStorage(CHECKOUT_USED_KEY);
+  removeStorage(CHECKOUT_INTERVAL_KEY);
 }
 
 function writeSubscriptions(subscriptions: SubscriptionRecord[]) {
@@ -154,25 +179,49 @@ function writeSubscriptions(subscriptions: SubscriptionRecord[]) {
 }
 
 function statusToMockStatus(status?: SubscriptionStatus): MockSubscriptionStatus {
+  if (status === "free") {
+    return "free";
+  }
+
   return status === "active" || status === "trialing" ? "active" : "inactive";
 }
 
 function planFromSubscription(subscription?: Partial<SubscriptionRecord> & { planId?: BillingPlanId }) {
-  return subscription?.plan ?? subscription?.planId ?? (subscription?.interval === "month" ? "monthly" : "yearly");
+  if (subscription?.plan) {
+    return subscription.plan;
+  }
+
+  if (subscription?.planId) {
+    return subscription.planId;
+  }
+
+  if (subscription?.interval === "free" || subscription?.subscriptionStatus === "free" || subscription?.status === "free") {
+    return "free";
+  }
+
+  return subscription?.interval === "month" ? "monthly" : "yearly";
 }
 
 function periodEndFor(planId: BillingPlanId, start: Date) {
   const plan = billingPlans[planId];
+  if (plan.billingInterval === "free") {
+    return addMonths(start, 1).toISOString();
+  }
+
   return plan.billingInterval === "year" ? addYears(start, 1).toISOString() : addMonths(start, 1).toISOString();
 }
 
 function subscriptionStatusToLegacyStatus(subscriptionStatus: MockSubscriptionStatus): SubscriptionStatus {
+  if (subscriptionStatus === "free") {
+    return "free";
+  }
+
   return subscriptionStatus === "active" ? "active" : "inactive";
 }
 
 function inactiveSubscription(userId: string): SubscriptionRecord {
   const now = new Date().toISOString();
-  const plan = billingPlans.yearly;
+  const plan = billingPlans.free;
 
   return {
     id: createId("sub"),
@@ -239,7 +288,7 @@ function upsertSubscription(
     forceUsageReset ||
     !normalizedExisting ||
     normalizedExisting.plan !== planId ||
-    normalizedExisting.subscriptionStatus !== "active" ||
+    (normalizedExisting.subscriptionStatus !== "active" && normalizedExisting.subscriptionStatus !== "free") ||
     subscriptionStatus !== normalizedExisting.subscriptionStatus;
   const next: SubscriptionRecord = {
     ...(normalizedExisting ?? inactiveSubscription(userId)),
@@ -255,8 +304,8 @@ function upsertSubscription(
     textGenerationsUsed: shouldResetUsage
       ? clampUsage(initialUsage, plan.textGenerationLimit)
       : normalizedExisting.textGenerationsUsed,
-    stripeCustomerId: normalizedExisting?.stripeCustomerId ?? `cus_mock_${userId.slice(-8)}`,
-    stripeSubscriptionId: normalizedExisting?.stripeSubscriptionId ?? `sub_mock_${userId.slice(-8)}`,
+    stripeCustomerId: subscriptionStatus === "free" ? undefined : normalizedExisting?.stripeCustomerId ?? `cus_mock_${userId.slice(-8)}`,
+    stripeSubscriptionId: subscriptionStatus === "free" ? undefined : normalizedExisting?.stripeSubscriptionId ?? `sub_mock_${userId.slice(-8)}`,
     currentPeriodStart: now.toISOString(),
     currentPeriodEnd: periodEndFor(plan.id, now),
     updatedAt: now.toISOString()
@@ -279,7 +328,7 @@ function getSubscriptionForUser(userId: string) {
   const normalized = subscription ? normalizeSubscription(subscription) : inactiveSubscription(userId);
 
   if (
-    normalized.subscriptionStatus === "active" &&
+    (normalized.subscriptionStatus === "active" || normalized.subscriptionStatus === "free") &&
     normalized.currentPeriodEnd &&
     Date.parse(normalized.currentPeriodEnd) <= Date.now()
   ) {
@@ -312,11 +361,12 @@ export const billingService = {
   },
 
   hasActiveCheckoutSelection() {
-    return readCheckoutSelection()?.subscriptionStatus === "active";
+    const selection = readCheckoutSelection();
+    return selection?.subscriptionStatus === "active" || selection?.subscriptionStatus === "free";
   },
 
   selectCheckoutPlan(planId: BillingPlanId): CheckoutSelection | null {
-    return writeCheckoutSelection(planId, "inactive");
+    return writeCheckoutSelection(planId);
   },
 
   markPaymentSuccess(planId?: BillingPlanId): CheckoutSelection | null {
@@ -326,7 +376,7 @@ export const billingService = {
       return null;
     }
 
-    return writeCheckoutSelection(selectedPlan, "active");
+    return writeCheckoutSelection(selectedPlan, selectedPlan === "free" ? "free" : "active");
   },
 
   clearCheckoutSelection() {
@@ -336,11 +386,17 @@ export const billingService = {
   async activateSelectedPlanForUser(userId: string): Promise<SubscriptionRecord> {
     const selection = readCheckoutSelection();
 
-    if (selection?.subscriptionStatus !== "active") {
+    if (!selection || (selection.subscriptionStatus !== "active" && selection.subscriptionStatus !== "free")) {
       throw new Error("Choose a plan to create your account.");
     }
 
-    return upsertSubscription(userId, "active", selection.plan, selection.textGenerationsUsed, true);
+    return upsertSubscription(
+      userId,
+      selection.plan === "free" ? "free" : "active",
+      selection.plan,
+      selection.textGenerationsUsed,
+      true
+    );
   },
 
   async getSubscription(userId: string): Promise<SubscriptionRecord> {
@@ -348,7 +404,7 @@ export const billingService = {
   },
 
   async activatePlan(userId: string, planId: BillingPlanId): Promise<SubscriptionRecord> {
-    return upsertSubscription(userId, "active", planId);
+    return upsertSubscription(userId, planId === "free" ? "free" : "active", planId);
   },
 
   async activateYearlyPlan(userId: string): Promise<SubscriptionRecord> {
@@ -364,11 +420,15 @@ export const billingService = {
   async consumeTextGeneration(userId: string): Promise<SubscriptionRecord> {
     const subscription = getSubscriptionForUser(userId);
 
-    if (subscription.subscriptionStatus !== "active") {
-      throw new Error("Choose a monthly or yearly plan to generate content.");
+    if (subscription.subscriptionStatus !== "active" && subscription.subscriptionStatus !== "free") {
+      throw new Error("Choose a plan to generate content.");
     }
 
     if (subscription.textGenerationsUsed >= subscription.textGenerationLimit) {
+      if (subscription.subscriptionStatus === "free") {
+        throw new Error(FREE_CREDIT_LIMIT_REACHED);
+      }
+
       throw new Error(TEXT_CREDIT_LIMIT_REACHED);
     }
 

@@ -90,7 +90,7 @@ export function PaidAccessGuard({ children }: { children: React.ReactNode }) {
           <CreditCard className="mx-auto h-8 w-8 text-coral" />
           <h1 className="mt-4 text-2xl font-black text-ink">Choose a plan to continue.</h1>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            Paid dashboard access starts after a successful Stripe payment.
+            Dashboard access starts after Free signup or a successful Stripe payment.
           </p>
           <ButtonLink className="mt-5 w-full" href="/pricing">
             Choose a plan

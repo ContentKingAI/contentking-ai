@@ -4,21 +4,23 @@ import type { BillingPlanId } from "@/types/saas";
 
 export const runtime = "nodejs";
 
-const fallbackPriceIds: Record<BillingPlanId, string> = {
+type StripePlanId = Exclude<BillingPlanId, "free">;
+
+const fallbackPriceIds: Record<StripePlanId, string> = {
   monthly: "price_1TT6SwKu4U4rqbAmPM6um33P",
   yearly: "price_1TT6TaKu4U4rqbAmGaZtbeDQ"
 };
 
-function isBillingPlanId(value: unknown): value is BillingPlanId {
+function isStripePlanId(value: unknown): value is StripePlanId {
   return value === "monthly" || value === "yearly";
 }
 
-function priceIdForPlan(plan: BillingPlanId) {
+function priceIdForPlan(plan: StripePlanId) {
   const envPriceId = plan === "monthly" ? process.env.STRIPE_MONTHLY_PRICE_ID : process.env.STRIPE_YEARLY_PRICE_ID;
   return envPriceId?.trim() || fallbackPriceIds[plan];
 }
 
-function priceEnvKeyForPlan(plan: BillingPlanId) {
+function priceEnvKeyForPlan(plan: StripePlanId) {
   return plan === "monthly" ? "STRIPE_MONTHLY_PRICE_ID" : "STRIPE_YEARLY_PRICE_ID";
 }
 
@@ -39,7 +41,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const plan = body?.plan;
 
-  if (!isBillingPlanId(plan)) {
+  if (!isStripePlanId(plan)) {
     return NextResponse.json({ error: "Choose a valid monthly or yearly plan." }, { status: 400 });
   }
 
