@@ -23,6 +23,7 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 
 - Public route: `/demo`
 - Correct demo code stores `demoAccessGranted=true` in localStorage
+- Demo access also stores the matching code locally, so old access is invalidated if the demo code changes
 - Successful demo access redirects to `/demo/dashboard`
 - Demo dashboard does not require signup or payment
 - Demo usage is limited to 5 generations per browser

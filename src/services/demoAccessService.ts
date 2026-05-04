@@ -1,6 +1,7 @@
 import { readJson, writeJson } from "@/lib/storage";
 
 const DEMO_ACCESS_KEY = "demoAccessGranted";
+const DEMO_ACCESS_CODE_KEY = "demoAccessCode";
 const FALLBACK_DEMO_ACCESS_CODE = "KING2026";
 
 export const demoAccessService = {
@@ -9,10 +10,14 @@ export const demoAccessService = {
   },
 
   hasAccess() {
-    return readJson<boolean>(DEMO_ACCESS_KEY, false) === true;
+    return (
+      readJson<boolean>(DEMO_ACCESS_KEY, false) === true &&
+      readJson<string>(DEMO_ACCESS_CODE_KEY, "") === this.getRequiredCode()
+    );
   },
 
   grantAccess() {
     writeJson(DEMO_ACCESS_KEY, true);
+    writeJson(DEMO_ACCESS_CODE_KEY, this.getRequiredCode());
   }
 };
