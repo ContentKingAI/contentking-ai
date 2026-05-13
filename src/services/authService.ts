@@ -24,6 +24,20 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function appUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return "http://localhost:3000";
+}
+
 function nameFromUser(user: User, fallback = "ContentKing Creator") {
   const metadataName = user.user_metadata?.full_name;
   return typeof metadataName === "string" && metadataName.trim() ? metadataName.trim() : fallback;
@@ -192,6 +206,65 @@ export const authService = {
 
     if (error) {
       throw new Error(error.message);
+    }
+  },
+
+  async sendPasswordResetEmail(emailInput: string) {
+    const email = normalizeEmail(emailInput);
+
+    if (!email) {
+      throw new Error("Enter your email to receive a password reset link.");
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${appUrl()}/reset-password`
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.warn("Supabase password reset request failed", error);
+      throw new Error("Unable to send reset link. Please try again.");
+    }
+  },
+
+  async hasPasswordResetSession() {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const {
+        data: { session },
+        error
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        throw error;
+      }
+
+      return Boolean(session);
+    } catch (error) {
+      console.warn("Supabase password reset session check failed", error);
+      return false;
+    }
+  },
+
+  async updatePassword(newPassword: string) {
+    if (newPassword.length < 8) {
+      throw new Error("Password must be at least 8 characters.");
+    }
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.warn("Supabase password update failed", error);
+      throw new Error("This reset link is invalid or expired. Please request a new one.");
     }
   },
 

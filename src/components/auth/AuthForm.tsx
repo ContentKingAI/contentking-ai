@@ -164,15 +164,28 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           />
         </label>
 
-        <label className="block">
-          <span className="text-sm font-bold text-ink">Password</span>
+        <div>
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-bold text-ink" htmlFor="auth-password">
+              Password
+            </label>
+            {!isSignup ? (
+              <Link
+                className="text-sm font-black text-ink underline decoration-mint decoration-2 underline-offset-4"
+                href="/forgot-password"
+              >
+                Forgot password?
+              </Link>
+            ) : null}
+          </div>
           <input
             className="field mt-2"
+            id="auth-password"
             onChange={(event) => setPassword(event.target.value)}
             type="password"
             value={password}
           />
-        </label>
+        </div>
 
         {error ? (
           <div className="rounded-lg border border-coral/25 bg-coral/10 p-3 text-sm font-semibold text-ink">

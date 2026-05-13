@@ -7,6 +7,7 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 - Landing page, public templates page, Free/Monthly/Yearly pricing page, and checkout page
 - Private demo access page and separate demo dashboard
 - Supabase email/password signup/login/logout
+- Supabase forgot password and password reset pages
 - Dashboard with subscription status, generator form, recent results, and billing link
 - Public template gallery plus paid dashboard templates that pre-fill the generator form
 - Client-side demo generation for captions, reels hooks, hashtags, and a 7-day calendar
@@ -94,9 +95,39 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_ADMIN_EMAIL=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 `SUPABASE_SERVICE_ROLE_KEY` is server-only and is used by `/api/admin/profiles` to read all customer profiles for the in-app admin page. Set `NEXT_PUBLIC_ADMIN_EMAIL` to the email that should be allowed to view the admin customer list. For the smoothest prototype signup flow, turn off Supabase email confirmation while testing, or users may need to confirm their email before the browser has a signed-in session.
+
+### Supabase password reset redirects
+
+The forgot password page calls Supabase Auth with:
+
+```ts
+supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`
+});
+```
+
+Set `NEXT_PUBLIC_APP_URL` for each environment:
+
+```bash
+# Local development
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Vercel production
+NEXT_PUBLIC_APP_URL=https://contentking-ai.vercel.app
+```
+
+In Supabase, open **Authentication > URL Configuration** and add these redirect URLs:
+
+```text
+http://localhost:3000/reset-password
+https://contentking-ai.vercel.app/reset-password
+```
+
+Also make sure the Supabase Site URL matches the active deployment URL. Redeploy Vercel after changing `NEXT_PUBLIC_APP_URL` because it is a client-exposed environment variable.
 
 ## Service layer
 
