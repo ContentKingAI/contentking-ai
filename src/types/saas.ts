@@ -46,6 +46,17 @@ export interface UserRecord {
   lastLoginAt: string;
 }
 
+export interface ProfileRecord {
+  id: string;
+  email: string;
+  fullName: string;
+  plan: BillingPlanId;
+  subscriptionStatus: MockSubscriptionStatus;
+  textGenerationLimit: number;
+  textGenerationsUsed: number;
+  createdAt: string;
+}
+
 export interface SubscriptionRecord {
   id: string;
   userId: string;

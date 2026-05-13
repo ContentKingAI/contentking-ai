@@ -1,13 +1,11 @@
-import { createId, readJson, removeStorage, writeJson } from "@/lib/storage";
+import type { User } from "@supabase/supabase-js";
+import { readJson, removeStorage, writeJson } from "@/lib/storage";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { billingPlans } from "@/services/billingService";
+import { profileService } from "@/services/profileService";
 import type { UserRecord } from "@/types/saas";
 
-const USERS_KEY = "contentking.users";
-const SESSION_KEY = "contentking.session";
 const PENDING_SIGNUP_KEY = "contentking.pendingSignup";
-
-interface StoredUser extends UserRecord {
-  passwordToken: string;
-}
 
 export interface AuthCredentials {
   email: string;
@@ -26,46 +24,62 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function tokenFor(password: string) {
-  if (typeof btoa === "function") {
-    return btoa(password);
-  }
-
-  return password;
+function nameFromUser(user: User, fallback = "ContentKing Creator") {
+  const metadataName = user.user_metadata?.full_name;
+  return typeof metadataName === "string" && metadataName.trim() ? metadataName.trim() : fallback;
 }
 
-function publicUser(user: StoredUser): UserRecord {
+function publicUser(user: User, fallbackName?: string): UserRecord {
+  const now = new Date().toISOString();
+  const email = user.email ?? "";
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase();
+
   return {
     id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    createdAt: user.createdAt,
-    lastLoginAt: user.lastLoginAt
+    name: nameFromUser(user, fallbackName),
+    email,
+    role: adminEmail && email.toLowerCase() === adminEmail ? "admin" : "user",
+    createdAt: user.created_at ?? now,
+    lastLoginAt: user.last_sign_in_at ?? now
   };
 }
 
-function readUsers() {
-  return readJson<StoredUser[]>(USERS_KEY, []);
-}
-
-function writeUsers(users: StoredUser[]) {
-  writeJson(USERS_KEY, users);
-}
-
-function writeSession(userId: string) {
-  writeJson(SESSION_KEY, { userId });
+async function ensureProfile(user: User, fullName: string) {
+  const plan = billingPlans.free;
+  await profileService.upsertProfile({
+    id: user.id,
+    email: user.email ?? "",
+    fullName,
+    billing: {
+      plan: plan.id,
+      subscriptionStatus: "free",
+      textGenerationLimit: plan.textGenerationLimit,
+      textGenerationsUsed: 0
+    }
+  });
 }
 
 export const authService = {
   async getSession(): Promise<AuthSession | null> {
-    const session = readJson<{ userId: string } | null>(SESSION_KEY, null);
-    if (!session) {
-      return null;
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      throw new Error(error.message);
     }
 
-    const user = readUsers().find((item) => item.id === session.userId);
-    return user ? { user: publicUser(user) } : null;
+    return data.session?.user ? { user: publicUser(data.session.user) } : null;
+  },
+
+  async getAccessToken(): Promise<string | null> {
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.session?.access_token ?? null;
   },
 
   async signUp(input: SignupInput): Promise<AuthSession> {
@@ -77,28 +91,30 @@ export const authService = {
       throw new Error("Enter an email and password to create your account.");
     }
 
-    const users = readUsers();
-    const existing = users.find((item) => item.email === email);
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name
+        }
+      }
+    });
 
-    if (existing) {
-      writeSession(existing.id);
-      return { user: publicUser(existing) };
+    if (error) {
+      throw new Error(error.message);
     }
 
-    const now = new Date().toISOString();
-    const user: StoredUser = {
-      id: createId("usr"),
-      name,
-      email,
-      role: users.length === 0 ? "admin" : "user",
-      createdAt: now,
-      lastLoginAt: now,
-      passwordToken: tokenFor(password)
-    };
+    if (!data.user) {
+      throw new Error("Supabase did not return a signed-up user.");
+    }
 
-    writeUsers([user, ...users]);
-    writeSession(user.id);
-    return { user: publicUser(user) };
+    if (data.session) {
+      await ensureProfile(data.user, name);
+    }
+
+    return { user: publicUser(data.user, name) };
   },
 
   async prepareSignUp(input: SignupInput) {
@@ -131,31 +147,62 @@ export const authService = {
 
   async signIn(input: AuthCredentials): Promise<AuthSession> {
     const email = normalizeEmail(input.email);
-    const passwordToken = tokenFor(input.password.trim());
-    const users = readUsers();
-    const index = users.findIndex((item) => item.email === email);
+    const password = input.password.trim();
 
-    if (index < 0 || users[index].passwordToken !== passwordToken) {
+    if (!email || !password) {
+      throw new Error("Enter your email and password.");
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data.user) {
       throw new Error("No matching account was found.");
     }
 
-    const updatedUser = {
-      ...users[index],
-      lastLoginAt: new Date().toISOString()
-    };
-    const nextUsers = [...users];
-    nextUsers[index] = updatedUser;
-    writeUsers(nextUsers);
-    writeSession(updatedUser.id);
+    const existingProfile = await profileService.getProfile(data.user.id);
 
-    return { user: publicUser(updatedUser) };
+    if (!existingProfile) {
+      await ensureProfile(data.user, nameFromUser(data.user));
+    }
+
+    return { user: publicUser(data.user) };
   },
 
   async signOut() {
-    removeStorage(SESSION_KEY);
+    const supabase = getSupabaseBrowserClient();
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      throw new Error(error.message);
+    }
   },
 
   async listUsers(): Promise<UserRecord[]> {
-    return readUsers().map(publicUser);
+    const accessToken = await this.getAccessToken();
+
+    if (!accessToken) {
+      return [];
+    }
+
+    const profiles = await profileService.listProfiles(accessToken);
+    return profiles.map((profile) => ({
+      id: profile.id,
+      name: profile.fullName || profile.email,
+      email: profile.email,
+      role:
+        process.env.NEXT_PUBLIC_ADMIN_EMAIL?.trim().toLowerCase() === profile.email.toLowerCase()
+          ? "admin"
+          : "user",
+      createdAt: profile.createdAt,
+      lastLoginAt: profile.createdAt
+    }));
   }
 };

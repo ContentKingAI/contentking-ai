@@ -1,12 +1,12 @@
 # ContentKing AI Prototype
 
-A polished Next.js + Tailwind prototype for an AI social media content generator. It behaves like a SaaS product while using mock browser storage for demo access, auth, billing, generation history, and AI output.
+A polished Next.js + Tailwind prototype for an AI social media content generator. It behaves like a SaaS product with Supabase Auth/profile storage, plus mock browser storage for demo access, generation history, and AI output.
 
 ## What is included
 
 - Landing page, public templates page, Free/Monthly/Yearly pricing page, and checkout page
 - Private demo access page and separate demo dashboard
-- Free and paid customer signup/login/logout
+- Supabase email/password signup/login/logout
 - Dashboard with subscription status, generator form, recent results, and billing link
 - Public template gallery plus paid dashboard templates that pre-fill the generator form
 - Client-side demo generation for captions, reels hooks, hashtags, and a 7-day calendar
@@ -16,6 +16,7 @@ A polished Next.js + Tailwind prototype for an AI social media content generator
 - Monthly plan: $12/month with 300 AI content packs/month
 - Yearly plan: $79/year with 5,000 AI content packs/year
 - Admin-ready modules for future users, subscriptions, generations, and templates
+- Admin customer view backed by the Supabase `profiles` table
 
 ## Access flows
 
@@ -41,7 +42,7 @@ NEXT_PUBLIC_DEMO_ACCESS_CODE=KING2026
 - Public route: `/pricing`
 - Choosing Free sends the user to `/signup?plan=free`
 - Free signup/login does not require Stripe Checkout
-- Free plan state is stored in localStorage:
+- Free plan state is stored in the Supabase `profiles` table:
   - `selectedPlan=free`
   - `subscriptionStatus=free`
   - `textGenerationLimit=10`
@@ -55,15 +56,46 @@ NEXT_PUBLIC_DEMO_ACCESS_CODE=KING2026
 
 - Public routes: `/`, `/pricing`, and `/templates`
 - Plan selection routes: `/pricing` and `/checkout`
-- Choosing Monthly or Yearly stores selected plan state in localStorage:
+- Choosing Monthly or Yearly stores selected checkout state locally until Stripe completes:
   - `selectedPlan`
   - `subscriptionStatus`
   - `textGenerationLimit`
   - `textGenerationsUsed`
 - Signup and login display the selected plan and then start Stripe Checkout for paid plans
 - Successful Stripe payment returns to `/dashboard?payment=success`
+- After payment success, the Supabase `profiles` row is updated with plan, subscription status, and credits
 - `/dashboard`, `/dashboard/history`, `/dashboard/billing`, and `/admin` require a signed-in user with Free or active paid access
 - If a user visits paid dashboard routes without payment/subscription success, they are sent to `/pricing`
+
+## Supabase setup
+
+Create a Supabase project, then run the SQL in `supabase/profiles.sql` in the Supabase SQL editor. It creates:
+
+- `public.profiles`
+- Row-level security policies for a user to read/update their own profile
+- An auth trigger that creates a profile row when a Supabase Auth user is created
+
+The profile columns are:
+
+- `id`
+- `email`
+- `full_name`
+- `plan`
+- `subscription_status`
+- `text_generation_limit`
+- `text_generations_used`
+- `created_at`
+
+For local and Vercel environments, set:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_ADMIN_EMAIL=
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` is server-only and is used by `/api/admin/profiles` to read all customer profiles for the in-app admin page. Set `NEXT_PUBLIC_ADMIN_EMAIL` to the email that should be allowed to view the admin customer list. For the smoothest prototype signup flow, turn off Supabase email confirmation while testing, or users may need to confirm their email before the browser has a signed-in session.
 
 ## Service layer
 
@@ -74,8 +106,9 @@ The app is intentionally routed through replaceable services:
 - `src/services/billingService.ts`
 - `src/services/historyService.ts`
 - `src/services/templateService.ts`
+- `src/services/profileService.ts`
 
-Today those services use localStorage and deterministic mock content. Later they can be replaced with Supabase Auth, Supabase tables, Stripe Checkout/Portal, and the OpenAI API without rewriting the UI.
+Auth and customer profiles now use Supabase. Generation history, AI output, demo access, and parts of checkout state remain prototype services and can later be moved to Supabase tables, Stripe Checkout/Portal, and the OpenAI API without rewriting the UI.
 
 ## Stripe checkout
 
@@ -88,6 +121,10 @@ STRIPE_SECRET_KEY=
 STRIPE_MONTHLY_PRICE_ID=
 STRIPE_YEARLY_PRICE_ID=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_ADMIN_EMAIL=
 ```
 
 Use recurring Stripe Price IDs that start with `price_` for `STRIPE_MONTHLY_PRICE_ID` and `STRIPE_YEARLY_PRICE_ID`. Product IDs that start with `prod_` cannot be used as Checkout line item prices.

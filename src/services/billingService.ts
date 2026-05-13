@@ -1,8 +1,10 @@
 import { addMonths, addYears, createId, readJson, removeStorage, writeJson } from "@/lib/storage";
+import { profileService } from "@/services/profileService";
 import type {
   BillingInterval,
   BillingPlanId,
   MockSubscriptionStatus,
+  ProfileRecord,
   SubscriptionRecord,
   SubscriptionStatus
 } from "@/types/saas";
@@ -272,6 +274,40 @@ function normalizeSubscription(subscription: StoredSubscription): SubscriptionRe
   };
 }
 
+function subscriptionFromProfile(profile: ProfileRecord): SubscriptionRecord {
+  const plan = billingPlans[profile.plan] ?? billingPlans.free;
+  const status = profile.subscriptionStatus === "free" ? "free" : profile.subscriptionStatus === "active" ? "active" : "inactive";
+
+  return {
+    id: `profile_${profile.id}`,
+    userId: profile.id,
+    status: subscriptionStatusToLegacyStatus(status),
+    subscriptionStatus: status,
+    plan: plan.id,
+    planName: plan.name,
+    price: plan.price,
+    priceCents: plan.priceCents,
+    currency: "usd",
+    billingInterval: plan.billingInterval,
+    interval: plan.interval,
+    textGenerationLimit: profile.textGenerationLimit,
+    textGenerationsUsed: clampUsage(profile.textGenerationsUsed, profile.textGenerationLimit),
+    currentPeriodStart: profile.createdAt,
+    currentPeriodEnd: periodEndFor(plan.id, new Date(profile.createdAt)),
+    createdAt: profile.createdAt,
+    updatedAt: profile.createdAt
+  };
+}
+
+async function saveProfileBillingState(subscription: SubscriptionRecord) {
+  return profileService.updateBillingState(subscription.userId, {
+    plan: subscription.plan,
+    subscriptionStatus: subscription.subscriptionStatus,
+    textGenerationLimit: subscription.textGenerationLimit,
+    textGenerationsUsed: subscription.textGenerationsUsed
+  });
+}
+
 function upsertSubscription(
   userId: string,
   subscriptionStatus: MockSubscriptionStatus,
@@ -390,35 +426,50 @@ export const billingService = {
       throw new Error("Choose a plan to create your account.");
     }
 
-    return upsertSubscription(
+    const subscription = upsertSubscription(
       userId,
       selection.plan === "free" ? "free" : "active",
       selection.plan,
       selection.textGenerationsUsed,
       true
     );
+
+    await saveProfileBillingState(subscription);
+    return subscription;
   },
 
   async getSubscription(userId: string): Promise<SubscriptionRecord> {
+    const profile = await profileService.getProfile(userId);
+
+    if (profile) {
+      return subscriptionFromProfile(profile);
+    }
+
     return getSubscriptionForUser(userId);
   },
 
   async activatePlan(userId: string, planId: BillingPlanId): Promise<SubscriptionRecord> {
-    return upsertSubscription(userId, planId === "free" ? "free" : "active", planId);
+    const subscription = upsertSubscription(userId, planId === "free" ? "free" : "active", planId);
+    await saveProfileBillingState(subscription);
+    return subscription;
   },
 
   async activateYearlyPlan(userId: string): Promise<SubscriptionRecord> {
-    return upsertSubscription(userId, "active", "yearly");
+    const subscription = upsertSubscription(userId, "active", "yearly");
+    await saveProfileBillingState(subscription);
+    return subscription;
   },
 
   async cancelPlan(userId: string): Promise<SubscriptionRecord> {
-    const currentPlan = getSubscriptionForUser(userId).plan;
+    const currentPlan = (await this.getSubscription(userId)).plan;
     clearCheckoutSelection();
-    return upsertSubscription(userId, "inactive", currentPlan);
+    const subscription = upsertSubscription(userId, "inactive", currentPlan);
+    await saveProfileBillingState(subscription);
+    return subscription;
   },
 
   async consumeTextGeneration(userId: string): Promise<SubscriptionRecord> {
-    const subscription = getSubscriptionForUser(userId);
+    const subscription = await this.getSubscription(userId);
 
     if (subscription.subscriptionStatus !== "active" && subscription.subscriptionStatus !== "free") {
       throw new Error("Choose a plan to generate content.");
@@ -439,6 +490,7 @@ export const billingService = {
     };
 
     saveSubscription(next);
+    await profileService.updateUsage(userId, next.textGenerationsUsed);
     return next;
   },
 

@@ -65,11 +65,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refresh = useCallback(async () => {
-    const session = await authService.getSession();
-    const nextUser = session?.user ?? null;
-    setUser(nextUser);
-    await loadUserData(nextUser);
-    setIsReady(true);
+    try {
+      const session = await authService.getSession();
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      await loadUserData(nextUser);
+    } catch (error) {
+      console.warn(error);
+      setUser(null);
+      setSubscription(null);
+      setGenerations([]);
+    } finally {
+      setIsReady(true);
+    }
   }, [loadUserData]);
 
   useEffect(() => {
