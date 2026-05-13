@@ -1,3 +1,4 @@
+import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { BillingPlanId, MockSubscriptionStatus, ProfileRecord } from "@/types/saas";
 
@@ -24,6 +25,15 @@ export interface ProfileBillingState {
   textGenerationsUsed: number;
 }
 
+interface ProfileInput {
+  id: string;
+  email: string;
+  fullName: string;
+  billing: ProfileBillingState;
+}
+
+const profileSelect = "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at";
+
 function normalizeProfile(row: ProfileRow): ProfileRecord {
   return {
     id: row.id,
@@ -42,14 +52,29 @@ function profileError(action: string, error: SupabaseLikeError) {
   return new Error(`Unable to ${action} profile. Please try again or contact ContentKing AI support.`);
 }
 
+function profilePayload(input: ProfileInput) {
+  return {
+    id: input.id,
+    email: input.email,
+    full_name: input.fullName,
+    plan: input.billing.plan,
+    subscription_status: input.billing.subscriptionStatus,
+    text_generation_limit: input.billing.textGenerationLimit,
+    text_generations_used: input.billing.textGenerationsUsed
+  };
+}
+
+function fullNameFromUser(user: User) {
+  const metadataName = user.user_metadata?.full_name;
+  return typeof metadataName === "string" && metadataName.trim() ? metadataName.trim() : "ContentKing Creator";
+}
+
 export const profileService = {
   async getProfile(userId: string): Promise<ProfileRecord | null> {
     const supabase = getSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("profiles")
-      .select(
-        "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
-      )
+      .select(profileSelect)
       .eq("id", userId)
       .maybeSingle();
 
@@ -60,30 +85,49 @@ export const profileService = {
     return data ? normalizeProfile(data as ProfileRow) : null;
   },
 
-  async upsertProfile(input: {
-    id: string;
-    email: string;
-    fullName: string;
-    billing: ProfileBillingState;
-  }): Promise<ProfileRecord> {
+  async ensureProfile(input: ProfileInput): Promise<ProfileRecord> {
+    const existingProfile = await this.getProfile(input.id);
+
+    if (existingProfile) {
+      return existingProfile;
+    }
+
     const supabase = getSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("profiles")
-      .upsert(
-        {
-          id: input.id,
-          email: input.email,
-          full_name: input.fullName,
-          plan: input.billing.plan,
-          subscription_status: input.billing.subscriptionStatus,
-          text_generation_limit: input.billing.textGenerationLimit,
-          text_generations_used: input.billing.textGenerationsUsed
-        },
-        { onConflict: "id" }
-      )
-      .select(
-        "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
-      )
+      .insert(profilePayload(input))
+      .select(profileSelect)
+      .maybeSingle();
+
+    if (error) {
+      const profileAfterInsertRace = await this.getProfile(input.id);
+
+      if (profileAfterInsertRace) {
+        return profileAfterInsertRace;
+      }
+
+      throw profileError("create", error);
+    }
+
+    if (data) {
+      return normalizeProfile(data as ProfileRow);
+    }
+
+    const profile = await this.getProfile(input.id);
+
+    if (profile) {
+      return profile;
+    }
+
+    throw new Error("Unable to create profile. The profile row was not returned by Supabase.");
+  },
+
+  async upsertProfile(input: ProfileInput): Promise<ProfileRecord> {
+    const supabase = getSupabaseBrowserClient();
+    const { data, error } = await supabase
+      .from("profiles")
+      .upsert(profilePayload(input), { onConflict: "id" })
+      .select(profileSelect)
       .maybeSingle();
 
     if (error) {
@@ -118,9 +162,7 @@ export const profileService = {
         text_generations_used: billing.textGenerationsUsed
       })
       .eq("id", userId)
-      .select(
-        "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
-      )
+      .select(profileSelect)
       .maybeSingle();
 
     if (error) {
@@ -146,6 +188,19 @@ export const profileService = {
       return profile;
     }
 
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    if (user?.id === userId) {
+      return this.ensureProfile({
+        id: user.id,
+        email: user.email ?? "",
+        fullName: fullNameFromUser(user),
+        billing
+      });
+    }
+
     throw new Error("Unable to update profile billing. No profile exists for this Supabase user.");
   },
 
@@ -155,9 +210,7 @@ export const profileService = {
       .from("profiles")
       .update({ text_generations_used: textGenerationsUsed })
       .eq("id", userId)
-      .select(
-        "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
-      )
+      .select(profileSelect)
       .maybeSingle();
 
     if (error) {

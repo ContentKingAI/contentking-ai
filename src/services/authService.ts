@@ -46,7 +46,7 @@ function publicUser(user: User, fallbackName?: string): UserRecord {
 
 async function ensureProfile(user: User, fullName: string) {
   const plan = billingPlans.free;
-  await profileService.upsertProfile({
+  await profileService.ensureProfile({
     id: user.id,
     email: user.email ?? "",
     fullName,
