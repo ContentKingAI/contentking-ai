@@ -1,6 +1,6 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
-  email text not null,
+  email text not null unique,
   full_name text,
   plan text not null default 'free' check (plan in ('free', 'monthly', 'yearly')),
   subscription_status text not null default 'free' check (subscription_status in ('free', 'inactive', 'active')),
@@ -8,6 +8,9 @@ create table if not exists public.profiles (
   text_generations_used integer not null default 0,
   created_at timestamptz not null default now()
 );
+
+create unique index if not exists profiles_email_unique_idx
+  on public.profiles (email);
 
 alter table public.profiles enable row level security;
 

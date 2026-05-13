@@ -74,6 +74,7 @@ Create a Supabase project, then run the SQL in `supabase/profiles.sql` in the Su
 - `public.profiles`
 - Row-level security policies for a user to read/update their own profile
 - An auth trigger that creates a profile row when a Supabase Auth user is created
+- A primary key on `profiles.id` and unique email index to prevent duplicate customer profiles
 
 The profile columns are:
 

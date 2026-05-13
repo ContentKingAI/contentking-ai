@@ -12,6 +12,11 @@ type ProfileRow = {
   created_at: string | null;
 };
 
+type SupabaseLikeError = {
+  message?: string;
+  code?: string;
+};
+
 export interface ProfileBillingState {
   plan: BillingPlanId;
   subscriptionStatus: MockSubscriptionStatus;
@@ -32,6 +37,11 @@ function normalizeProfile(row: ProfileRow): ProfileRecord {
   };
 }
 
+function profileError(action: string, error: SupabaseLikeError) {
+  console.warn(`Supabase profile ${action} failed`, error);
+  return new Error(`Unable to ${action} profile. Please try again or contact ContentKing AI support.`);
+}
+
 export const profileService = {
   async getProfile(userId: string): Promise<ProfileRecord | null> {
     const supabase = getSupabaseBrowserClient();
@@ -44,7 +54,7 @@ export const profileService = {
       .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw profileError("load", error);
     }
 
     return data ? normalizeProfile(data as ProfileRow) : null;
@@ -74,16 +84,30 @@ export const profileService = {
       .select(
         "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
       )
-      .single();
+      .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw profileError("save", error);
     }
 
-    return normalizeProfile(data as ProfileRow);
+    if (data) {
+      return normalizeProfile(data as ProfileRow);
+    }
+
+    const profile = await this.getProfile(input.id);
+
+    if (profile) {
+      return profile;
+    }
+
+    throw new Error("Unable to save profile. The profile row was not returned by Supabase.");
   },
 
-  async updateBillingState(userId: string, billing: ProfileBillingState): Promise<ProfileRecord> {
+  async updateBillingState(
+    userId: string,
+    billing: ProfileBillingState,
+    fallback?: { email: string; fullName: string }
+  ): Promise<ProfileRecord> {
     const supabase = getSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("profiles")
@@ -97,16 +121,35 @@ export const profileService = {
       .select(
         "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
       )
-      .single();
+      .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw profileError("update billing for", error);
     }
 
-    return normalizeProfile(data as ProfileRow);
+    if (data) {
+      return normalizeProfile(data as ProfileRow);
+    }
+
+    if (fallback) {
+      return this.upsertProfile({
+        id: userId,
+        email: fallback.email,
+        fullName: fallback.fullName,
+        billing
+      });
+    }
+
+    const profile = await this.getProfile(userId);
+
+    if (profile) {
+      return profile;
+    }
+
+    throw new Error("Unable to update profile billing. No profile exists for this Supabase user.");
   },
 
-  async updateUsage(userId: string, textGenerationsUsed: number): Promise<ProfileRecord> {
+  async updateUsage(userId: string, textGenerationsUsed: number): Promise<ProfileRecord | null> {
     const supabase = getSupabaseBrowserClient();
     const { data, error } = await supabase
       .from("profiles")
@@ -115,13 +158,13 @@ export const profileService = {
       .select(
         "id,email,full_name,plan,subscription_status,text_generation_limit,text_generations_used,created_at"
       )
-      .single();
+      .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw profileError("update usage for", error);
     }
 
-    return normalizeProfile(data as ProfileRow);
+    return data ? normalizeProfile(data as ProfileRow) : null;
   },
 
   async listProfiles(accessToken: string): Promise<ProfileRecord[]> {

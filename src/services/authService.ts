@@ -68,7 +68,17 @@ export const authService = {
       throw new Error(error.message);
     }
 
-    return data.session?.user ? { user: publicUser(data.session.user) } : null;
+    if (!data.session?.user) {
+      return null;
+    }
+
+    const existingProfile = await profileService.getProfile(data.session.user.id);
+
+    if (!existingProfile) {
+      await ensureProfile(data.session.user, nameFromUser(data.session.user));
+    }
+
+    return { user: publicUser(data.session.user) };
   },
 
   async getAccessToken(): Promise<string | null> {
